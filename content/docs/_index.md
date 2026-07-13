@@ -1,7 +1,7 @@
 ---
-title: "과목"
+title: "업무용웹앱"
 cascade:
   type: docs
 ---
 
-과목별 chapter 목록입니다.
+주차별 강의 자료입니다.

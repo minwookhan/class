@@ -3,7 +3,7 @@ title: "장비대여시스템"
 author: ["minwook Han"]
 draft: false
 toc: true
-weight: 2
+weight: 3
 ---
 
 ## <span class="section-num">1</span> 장비관리 PRD 요청 {#장비관리-prd-요청}
@@ -328,6 +328,16 @@ http://googleusercontent.com/immersive_entry_chip/0
 ```
 
 
+#### <span class="section-num">1.1.3</span> 대화내용 보기 {#대화내용-보기}
+
+ <iframe
+  src="/apps/demo/gemini_prd.html"
+  title="HTML 문서"
+  loading="lazy"
+  class="embedded-html-frame">
+</iframe>
+
+
 ### <span class="section-num">1.2</span> 완성된 PRD {#완성된-prd}
 
 -   PRD 전체 문서를 보고 검토 수정합니다.
@@ -369,10 +379,15 @@ http://googleusercontent.com/immersive_entry_chip/0
 | 스캐너-01 | 엡손 고속 스캐너 | 사무기기 | 스캐너 | 문서 스캐너 | 2층 사무실 | 수리중 | 5     |
 
 
-## <span class="section-num">2</span> step-1 Firebase 설정하기 {#step-1-firebase-설정하기}
+## <span class="section-num">2</span> Firebase 소개 {#firebase-소개}
+
+[firebase_소개_pptx](/ox-hugo/Firebase_강의자료.pptx)
 
 
-### <span class="section-num">2.1</span> project 생성 {#project-생성}
+## <span class="section-num">3</span> step-1 Firebase 설정하기 {#step-1-firebase-설정하기}
+
+
+### <span class="section-num">3.1</span> project 생성 {#project-생성}
 
 1.  프로젝트 생성 사이트 접속
     [link: project 생성하기](https://console.firebase.google.com/u/1/?hl=ko)
@@ -393,7 +408,7 @@ http://googleusercontent.com/immersive_entry_chip/0
     {{< figure src="/ox-hugo/20260710_132921_screenshot.png" >}}
 
 
-### <span class="section-num">2.2</span> 프로젝트안에 App 생성하기 {#프로젝트안에-app-생성하기}
+### <span class="section-num">3.2</span> 프로젝트안에 App 생성하기 {#프로젝트안에-app-생성하기}
 
 1.  App 추가
 
@@ -412,7 +427,7 @@ http://googleusercontent.com/immersive_entry_chip/0
 {{< figure src="/ox-hugo/20260710_141249_screenshot.png" >}}
 
 
-### <span class="section-num">2.3</span> 로그인 설정 {#로그인-설정}
+### <span class="section-num">3.3</span> 로그인 설정 {#로그인-설정}
 
 1.  로그인 기능을 활성화 합니다
     사이드메뉴--&gt; 보안---&gt; "Authentification"
@@ -428,7 +443,7 @@ http://googleusercontent.com/immersive_entry_chip/0
     {{< figure src="/ox-hugo/20260710_143233_screenshot.png" >}}
 
 
-### <span class="section-num">2.4</span> 텍스트DB 설정 {#텍스트db-설정}
+### <span class="section-num">3.4</span> 텍스트DB 설정 {#텍스트db-설정}
 
 1.  텍스트 저장용 DB 설정 합니ㄷ
     -   "FireStore" 선택
@@ -465,103 +480,6 @@ http://googleusercontent.com/immersive_entry_chip/0
 {{< figure src="/ox-hugo/20260710_150157_screenshot.png" >}}
 
 
-## <span class="section-num">3</span> 초기 만들기 {#초기-만들기}
-
-````markdown
-
-# Instruction
-1. 나는 장비대여 관리 앱을 만든다
-2. {Rule}을 이용하여 MVP 로 제작하라
-# Rule
-
-## 1. 개요
-
- * **제품명:** 사내 장비 대여 및 관리 시스템 (가칭)
- * **목적:** 사내 자산(IT 기기, 가구 등)의 대여/반납 프로세스 효율화 및 실시간 재고 관리
- * **타겟 사용자:** 사내 장비 관리자(총무/IT팀) 및 대여 서비스를 이용하는 일반 사원
- * **플랫폼:** PC 및 모바일 반응형 웹앱
-
----
-
-## 2. 사용자 역할 및 권한 (User Roles)
-
-### 2.1 일반 사원 (End User)
-
- * **장비 조회:** 2단계 카테고리 및 검색을 통해 대여 가능 장비 확인
- * **대여/반납 신청:** 대여를 원하는 장비 선택 후 신청
- * **연장 신청:** 반납 기한 내에 지정된 횟수(예: 1회) 한도 내에서 즉시 자동 연장
- * **상태 확인:** 자신의 대여 현황 및 승인 상태(승인 대기/완료) 확인
-
-### 2.2 장비 관리자 (Admin)
-
- * **대여 승인 관리:** 사원의 장비 대여/반납 신청 건에 대한 수동 승인 및 거절
- * **대시보드 모니터링:** 전체 재고 현황, 승인 대기 건, 반납 임박/지연 현황 실시간 파악
- * **장비 및 카테고리 관리:** 장비 등록(이름표 방식 식별) 및 분류 체계 관리
-
----
-
-## 3. 핵심 기능 요구사항 (Functional Requirements)
-
-### 3.1 회원가입 및 로그인
-
- * **인증 방식:** Firebase Authentication 활용
- * **계정 체계:** 앱 전용 아이디 및 비밀번호 새로 생성하여 로그인
-
-### 3.2 장비 및 재고 관리
-
- * **분류 체계:** 2단계 상세 카테고리 구조 (예: `IT 기기 > 노트북`, `사무 가구 > 의자`)
- * **장비 식별 방식:** 단순 목록 및 이름표 선택 방식 (예: `노트북 1호`, `노트북 2호`) 활용 관리
-
-### 3.3 대여/반납 프로세스 (워크플로우)
-
-1. **사원:** 장비 목록에서 특정 장비(이름표) 선택 후 대여 신청
-2. **시스템:** 해당 장비 상태를 `승인 대기`로 변경 후 관리자에게 이메일 알림 발송
-3. **관리자:** 대시보드에서 요청 확인 후 `수동 승인` 처리
-4. **시스템:** 장비 상태를 `승인 완료(대여중)`로 변경하고 사원에게 승인 완료 이메일 발송
-5. **반납/연장:** 고정 기간(예: 7일) 종료 시 반납 또는 자동 연장(1회 제한) 버튼 클릭
-
-### 3.4 관리자 대시보드 (Dashboard)
-
- * **승인 대기 목록:** 현재 사원들이 신청하여 승인을 기다리는 실시간 요청 리스트
- * **실시간 재고 현황:** 전체 장비의 수량 및 현재 대여 가능 기기 수량 시각화
- * **반납 관리 목록:** 반납일이 지났거나 기한이 임박한 사용자 및 장비 리스트
-
-### 3.5 알림 시스템 (Notification)
-
- * **연동 채널:** 이메일(Email) 알림
- * **발송 시점:** * 사원의 대여 신청 시 (관리자 수신)
- * 관리자의 대여 승인/거절 처리 시 (사원 수신)
- * 대여 반납 기한 임박 및 지연 발생 시 (사원 수신)
-# 장비DB 구조
-
-1. 각 물품은 아래와 같은 구조이다.
-    ```
-    제품이름, 제품종류, 보유수, 장소, 현재상태(가능, 수리, 대여중), 장비고유번호, 카테고리1, 카테고리2
-    ```
-- 장비고유번호에 따른 정보
-    ```
-    제품이름, 구매일자, 가격, 구매날짜, 보유개수
-    ```
-````
-
-
-### <span class="section-num">3.1</span> db error {#db-error}
-
-{{< figure src="/ox-hugo/20260709_195623_screenshot.png" >}}
-
-````javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      // 인증된(로그인한) 사용자만 읽기 및 쓰기 허용
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-````
-
-
 ## <span class="section-num">4</span> step-2 로그인 만들기 {#step-2-로그인-만들기}
 
 -   1단계 초기 제작합니다
@@ -574,7 +492,7 @@ service cloud.firestore {
 ### <span class="section-num">4.1</span> 로그인 화면 만들기 {#로그인-화면-만들기}
 
 1.  로그인 Prompt
-    ````markdown
+    ```markdown
         ## Instruction
         1. 로그인 화면을 구성하라.
         2. 회원은 [일반회원, 관리자] 레벨 있다.
@@ -605,7 +523,7 @@ service cloud.firestore {
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
 
-    ````
+    ```
     {{< figure src="/ox-hugo/20260710_161343_screenshot.png" caption="<span class=\"figure-number\">Figure 11: </span>로그인 화면 요청" >}}
 2.  일반회원 추가
 
@@ -621,9 +539,9 @@ service cloud.firestore {
 
     2.  관리자 추가
         -   일단 일반회원으로 관리자 ID를 생성합니다:
-            ````quote
+            ```quote
                id: admin@ksd.com pw: 123456
-            ````
+            ```
             {{< figure src="/ox-hugo/20260710_162550_screenshot.png" caption="<span class=\"figure-number\">Figure 14: </span>관리자계정생성" >}}
 
 3.  생성된 ID 확인
@@ -644,10 +562,10 @@ service cloud.firestore {
 
 <!--listend-->
 
-````markdown
+```markdown
 1. 로그인 초기 화면에 테스용 로그인 메뉴를 추가해.
 {user@ksd.com: 123456, user2@ksd.com:123456, admin@ksd.com:123456 }
-````
+```
 
 
 ## <span class="section-num">5</span> step-3 데이터베이스 구조 만들기 {#step-3-데이터베이스-구조-만들기}
@@ -660,7 +578,7 @@ service cloud.firestore {
 
 ### <span class="section-num">5.1</span> DB설계 prompt {#db설계-prompt}
 
-````markdown
+```markdown
 #### **2단계: 데이터베이스(DB) 구조 설계**
 
  "로그인 기능은 잘 작동해. 이제 **Firebase Firestore**에 데이터를 저장하려고 해.
@@ -688,7 +606,7 @@ service cloud.firestore {
 | 마이크-01     | 무선 마이크 세트    | 영상·음향기기 | 마이크     | 무선 마이크     | 2층 회의실   | 가능   | 5          |
 | 스피커-01     | 블루투스 스피커     | 영상·음향기기 | 스피커     | 휴대용 스피커   | 3층 창고     | 가능   | 5          |
 | 웹캠-01       | 로지텍 브리오       | 영상·음향기기 | 웹캠       | 4K 웹캠         | 2층 사무실   | 가능   | 5          |
-````
+```
 
 
 ### <span class="section-num">5.2</span> DB설계 확인 {#db설계-확인}
@@ -713,7 +631,7 @@ service cloud.firestore {
 
 ### <span class="section-num">6.1</span> 대여화면 만들기 prompt {#대여화면-만들기-prompt}
 
-````markdown
+```markdown
 #### **3단계: 일반 사원용 화면 (장비 조회 및 대여 신청)**
 
 
@@ -727,7 +645,7 @@ service cloud.firestore {
 3. 달력에는 대여가 가능한 기간과 불가능한 기간이 표시된다.
 4. 대여 사유를 입력한다(text box)
 
-````
+```
 
 -   대여화면
 
@@ -748,7 +666,7 @@ service cloud.firestore {
 
 ### <span class="section-num">7.1</span> 관리자 화면 만들기 prompt {#관리자-화면-만들기-prompt}
 
-````markdown
+```markdown
 #### **4단계: 관리자용 대시보드 화면**
 
  "관리자가 로그인했을 때 볼 수 있는 대시보드 화면 코드를 작성해 줘. 다음 3가지가 한눈에 보여야 해.
@@ -757,7 +675,7 @@ service cloud.firestore {
  3. 반납일이 지났거나 임박한 대여 목록
  승인 버튼을 누르면 DB 상태가 '대여 중'으로 바뀌도록 처리해 줘."
 
-````
+```
 
 
 ## <span class="section-num">8</span> step-6 일반회원 기능 개선 {#step-6-일반회원-기능-개선}
@@ -774,7 +692,7 @@ service cloud.firestore {
 
 <!--listend-->
 
-````markdown
+```markdown
 #### **5단계: 사원 마이페이지 (상태 확인 및 연장)**
 
  "사원이 자신이 신청한 장비 상태를 볼 수 있는 '마이페이지' 코드를 추가해 줘.
@@ -782,7 +700,7 @@ service cloud.firestore {
  2. 대여 중인 장비의 반납 기한을 보여주고, '1회 자동 연장' 버튼을 만들어 줘.
  3. 연장 버튼을 누르면 반납일이 7일 늘어나고, 버튼은 더 이상 누를 수 없게(비활성화) 처리해 줘."
 
-````
+```
 
 {{< figure src="/ox-hugo/20260710_181536_screenshot.png" caption="<span class=\"figure-number\">Figure 20: </span>마이페이지 작성" >}}
 
@@ -791,12 +709,12 @@ service cloud.firestore {
 
 -   신청화면에 리스트 보기를 추가합니다
 -   카테고리로 필터링, 장비명 검색 기능을 추가합니다
-    ````markdown
+    ```markdown
     1. 일반회원의 "장비 대여 신청" 화면에 리스트 보기를 추가하라
     2. 리스트 보기에 아래와 같은  필터링 기능을 추가하라
     ​    - 카테고리 1,2차를 각각 드랍다운 메뉴로 필터링 할 수 있다.
     ​    - 제품명으로 *검색* 가능하다.
-    ````
+    ```
 
 {{< figure src="/ox-hugo/20260710_182847_screenshot.png" >}}
 
@@ -807,13 +725,13 @@ service cloud.firestore {
 
 <!--listend-->
 
-````markdown
+```markdown
 1. "마이페이지" 에 리스트 보기를 추가한다.
 2. 리스트보기에 {보기옵션}을 추가해서 표시한다.
 ## 보기옵션
 1. 제품명, 대여상태,대여날짜, 반납예정일(남은날짜수), 연장기능
 
-````
+```
 
 {{< figure src="/ox-hugo/20260710_183453_screenshot.png" >}}
 
@@ -831,10 +749,10 @@ service cloud.firestore {
 
 -   승인대기 목록을 리스트로 관리 합니다
 -   반납지연 및 임밤은 상단의 대시보드로 이동 시킵니다.
-    ````markdown
+    ```markdown
     1. "승인 대기 목록" 을 리스트 형태로 변경하라.
     2. "반납 지연 및 임박"을 상단의 대시보드로 이동시켜라
-    ````
+    ```
 
 {{< figure src="/ox-hugo/20260710_184421_screenshot.png" caption="<span class=\"figure-number\">Figure 21: </span>수정된 대시보드" >}}
 
@@ -848,13 +766,13 @@ service cloud.firestore {
 
 <!--listend-->
 
-````markdown
+```markdown
 1. 장비목록 관리 페이지를 작성하라.
 ## 장비목록 관리 페이지 기능
 1. 목록들의 현황을 볼 수 있다.
 2. 목록을 수동으로 추가/삭제/(보이기,숨기기) 할 수 있다.
 3. 장비목록을 xlsx 파일로 내려 받거나 xlsx파일로 일괄 업로드 할 수 있다.
-````
+```
 
 -   장비목록 관리
 
@@ -868,11 +786,11 @@ service cloud.firestore {
 ### <span class="section-num">9.3</span> 리스트 보기 {#리스트-보기}
 
 -   리스트보기에 필터링 기능추가
-    ````markdown
+    ```markdown
     1. 리스트보기에 필터링 기능 추가.
     ​ - 카테고리1,2 를 드랍다운 메뉴로 필터링, 장비명 이름으로 검색
     ​ - "상태" 에 따라 필터링
-    ````
+    ```
 
 {{< figure src="/ox-hugo/20260710_192345_screenshot.png" caption="<span class=\"figure-number\">Figure 23: </span>필터링 기능추가" >}}
 
@@ -883,81 +801,6 @@ service cloud.firestore {
 <https://ai.studio/apps/9343844e-01a8-43df-a3fb-b6893e36df99>
 
 
-## <span class="section-num">10</span> 테스트용 더미 데이터 생성 {#테스트용-더미-데이터-생성}
+## <span class="section-num">10</span> step-8 초기화면 디자인 {#step-8-초기화면-디자인}
 
-````markdown
-[장비관리] 에 장비 더미데이터를 입력하는 버튼을 추가해서 구현하라
-````
-
-
-### <span class="section-num">10.1</span> 결과 {#결과}
-
-{{< figure src="/ox-hugo/20260709_204557_screenshot.png" caption="<span class=\"figure-number\">Figure 24: </span>더미데이터생성 결과확인" >}}
-
-
-## <span class="section-num">11</span> 대여신청 {#대여신청}
-
--   대여 신청시 품목 카테고리 레벨로 필터링,
--   대여 날짜 입력
--   대여 목적 입력
-
-<!--listend-->
-
-````markdown
-1. "일반유저"가 대여신청시 {Info} 에 기반해 대여한다.
-
-## Info
-1. 대여품은 카테고리로 필터링과 이름 검색으로 검색한다
-2. 대여 기간 입력 한다(대여시작날짜 종료 날짜를 캘린더에서 검색한다
-3. 해당 제품이 대여기간에 가능한지 확인하고 달력에 표시한다. (불가능한 기간을 달력에 표시한다)
-4. 대여 목적을 text box 로 입력한다
-````
-
-
-## <span class="section-num">12</span> 장비관리 화면 고도화 {#장비관리-화면-고도화}
-
-````markdown
-"장비관리" 의 목록 테이블에서 필드 제목으로 소트 , 필터링 가능하게하라
-````
-
-{{< figure src="/ox-hugo/20260709_211710_screenshot.png" >}}
-
-
-## <span class="section-num">13</span> 대여 연장 기능 {#대여-연장-기능}
-
--   대여된 목록에서 대여 연장 기능을 구혀한다.
--   기본연기 기간과 횟수 지정
-
-
-## <span class="section-num">14</span> 대시보드 {#대시보드}
-
-````markdown
-- "대시보드"에 제품별 대여 히스트리를 표시한다.
-  {제품정보, 대여자, 대여기간} 을 필수로 표시한다.
-````
-
-
-## <span class="section-num">15</span> 제품 DB {#제품-db}
-
-| 고유번호 | 장비명      | 대분류  | 중분류 | 소분류     | 장소    | 상태 | 최대대여일 |
-|------|----------|------|-----|---------|-------|----|-------|
-| 노트북-01 | 맥북 프로 14 | IT기기  | 노트북 | 맥북       | 3층 창고 | 가능 | 4     |
-| 노트북-02 | LG 그램 16  | IT기기  | 노트북 | 윈도우 노트북 | 3층 창고 | 대여중 | 3     |
-| 데스크탑-01 | HP 프로데스크 미니 | IT기기  | 데스크탑 | 미니PC     | 4층 IT실 | 가능 | 4     |
-| 모니터-01 | LG 27인치 4K | IT기기  | 모니터 | 4K 모니터  | 2층 사무실 | 가능 | 5     |
-| 모니터-02 | 삼성 34인치 커브드 | IT기기  | 모니터 | 울트라와이드 | 2층 사무실 | 대여중 | 5     |
-| 태블릿-01 | 아이패드 프로 11 | IT기기  | 태블릿 | 아이패드   | 3층 창고 | 가능 | 5     |
-| 복합기-01 | 신도리코 A3 복합기 | 사무기기 | 복합기 | 레이저 복합기 | 2층 사무실 | 가능 | 5     |
-| 프린터-01 | HP 레이저젯 | 사무기기 | 프린터 | 흑백 레이저 | 1층 로비 | 가능 | 5     |
-| 스캐너-01 | 엡손 고속 스캐너 | 사무기기 | 스캐너 | 문서 스캐너 | 2층 사무실 | 수리중 | 5     |
-| 세단기-01 | 아이리스 문서세단기 | 사무기기 | 문서세단기 | 크로스컷   | 3층 창고 | 가능 | 5     |
-| 라벨기-01 | 브라더 라벨프린터 | 사무기기 | 라벨프린터 | 라벨 프린터 | 2층 사무실 | 가능 | 5     |
-| 카메라-01 | 소니 A7 IV  | 영상·음향기기 | 카메라 | 미러리스   | 3층 창고 | 가능 | 5     |
-| 프로젝터-01 | 엡손 4K 프로젝터 | 영상·음향기기 | 프로젝터 | 4K 프로젝터 | 1층 대회의실 | 대여중 | 5     |
-| 마이크-01 | 무선 마이크 세트 | 영상·음향기기 | 마이크 | 무선 마이크 | 2층 회의실 | 가능 | 5     |
-| 스피커-01 | 블루투스 스피커 | 영상·음향기기 | 스피커 | 휴대용 스피커 | 3층 창고 | 가능 | 5     |
-| 웹캠-01 | 로지텍 브리오 | 영상·음향기기 | 웹캠  | 4K 웹캠    | 2층 사무실 | 가능 | 5     |
-| 공유기-01 | ASUS 무선 공유기 | 네트워크기기 | 공유기 | Wi-Fi 6 AP | 4층 IT실 | 가능 | 5     |
-| 스위치-01 | 시스코 24포트 | 네트워크기기 | 스위치 | 기가비트 스위치 | 4층 IT실 | 가능 | 5     |
-| NAS-01  | 시놀로지 NAS | 네트워크기기 | 저장장치 | NAS        | 4층 IT실 | 대여중 | 5     |
-| 의자-01 | 시디즈 T50  | 사무가구 | 의자  | 사무용 의자 | 5층 창고 | 가능 | 5     |
+-   apple 의 디자인으로 변경해보세요

@@ -1,3 +1,16 @@
+/* Keep the browser canvas and page background in sync on short pages. */
+html.light,
+html.light body {
+  min-height: 100%;
+  background-color: rgb(255, 255, 255);
+}
+
+html.dark,
+html.dark body {
+  min-height: 100%;
+  background-color: rgb(17, 17, 17);
+}
+
 .hextra-toc .site-toc-panel {
   margin: 0;
 }
@@ -496,4 +509,27 @@
   .site-sidebar-slide-toggle {
     display: none;
   }
+}
+
+/* Keep embedded HTML documents inside the article flow. */
+.content iframe {
+  position: static !important;
+  inset: auto !important;
+  display: block;
+  width: 100% !important;
+  max-width: 100%;
+  height: clamp(20rem, 55vh, 36rem) !important;
+  margin: 1rem 0 1.5rem;
+  border: 1px solid rgb(229, 231, 235) !important;
+  border-radius: 0.5rem;
+  background-color: rgb(255, 255, 255);
+}
+
+.dark .content iframe {
+  border-color: rgb(64, 64, 64) !important;
+}
+
+/* Give the Q&A deck enough viewport height to show its footer controls. */
+.content iframe.embedded-html-frame {
+  height: clamp(42rem, 85vh, 56rem) !important;
 }

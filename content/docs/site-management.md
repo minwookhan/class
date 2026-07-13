@@ -1,4 +1,6 @@
 ---
+sidebar:
+  exclude: true
 title: "사이트 관리"
 linkTitle: "사이트 관리"
 toc: true

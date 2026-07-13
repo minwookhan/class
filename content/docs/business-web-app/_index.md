@@ -1,6 +1,6 @@
 ---
-title: "업무용웹앱"
-linkTitle: "업무용웹앱"
+title: "2주차"
+linkTitle: "2주차"
 weight: 2
 cascade:
   type: docs
@@ -8,4 +8,4 @@ cascade:
     reversePagination: false
 ---
 
-업무 자동화와 웹앱 개발 관련 문서입니다.
+2주차 업무용 웹앱 개발 자료입니다.
