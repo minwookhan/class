@@ -1,0 +1,18 @@
+#+title: Prompt
+#+begin_src markdown
+1. 나는 Hugo 를 이용해 정적 사이트를 구축한다
+2. {structure}  에 따라 사이트 메뉴와 구성을 만든다
+3. ~/Documents/hugo_doc/example.org  을 emacs 을 이용해 hugo로 export  하여 테스트하라
+4. org 파일의 각 노드를 쪼개서생성하지 말라 
+## Structure
+### 왼쪽사이드바메뉴
+1. 1 단계 최상위 메뉴: 과목명
+2. 2 단계 메뉴: chapter --> 1개의 org 파일
+3. 3 단계 메뉴: org file 안의 node 들의 anchor bookmark 로 구성
+### 오른쪽사이드메뉴
+- on this page 기능(anchor bookmark)
+## Theme
+Hugo Hextra
+
+#+end_src
+

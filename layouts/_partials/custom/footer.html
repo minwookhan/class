@@ -1,0 +1,49 @@
+<script>
+  (() => {
+    const storageKey = "site-sidebar-collapsed";
+
+    function isDesktop() {
+      return window.matchMedia("(min-width: 48rem)").matches;
+    }
+
+    function setCollapsed(collapsed, button) {
+      document.body.classList.toggle("site-sidebar-collapsed", collapsed);
+      localStorage.setItem(storageKey, collapsed ? "true" : "false");
+
+      if (button) {
+        const label = collapsed ? "왼쪽 메뉴 펼치기" : "왼쪽 메뉴 접기";
+        button.setAttribute("aria-label", label);
+        button.setAttribute("title", label);
+        button.setAttribute("aria-pressed", collapsed ? "true" : "false");
+      }
+    }
+
+    function initSidebarSlideToggle() {
+      const sidebar = document.querySelector(".hextra-sidebar-container");
+      if (!sidebar || document.querySelector(".site-sidebar-slide-toggle")) return;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "site-sidebar-slide-toggle";
+      button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>';
+      document.body.appendChild(button);
+
+      const saved = localStorage.getItem(storageKey) === "true";
+      setCollapsed(isDesktop() && saved, button);
+
+      button.addEventListener("click", () => {
+        setCollapsed(!document.body.classList.contains("site-sidebar-collapsed"), button);
+      });
+
+      window.matchMedia("(min-width: 48rem)").addEventListener("change", (event) => {
+        setCollapsed(event.matches && localStorage.getItem(storageKey) === "true", button);
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initSidebarSlideToggle, { once: true });
+    } else {
+      initSidebarSlideToggle();
+    }
+  })();
+</script>
