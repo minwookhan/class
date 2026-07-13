@@ -17,7 +17,7 @@ toc: false
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3"/><path d="M12 18v3"/><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 10h6"/><path d="M9 14h4"/><path d="M3 12h3"/><path d="M18 12h3"/></svg>
           기술 문서 보기
         </a>
-        <a class="site-home-secondary" href="/docs/bitcoin-price-prediction/example/">
+        <a class="site-home-secondary" href="/docs/machine-learning/bitcoin-price-prediction/example/">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 14 3-3 3 2 5-6"/><circle cx="18" cy="7" r="1.5"/></svg>
           AI 예제 열기
         </a>
@@ -40,14 +40,14 @@ toc: false
   </div>
 
   <div class="site-home-grid" aria-label="Quick links">
-    <a class="site-home-card" href="/docs/bitcoin-price-prediction/example/">
+    <a class="site-home-card" href="/docs/machine-learning/bitcoin-price-prediction/example/">
       <span class="site-home-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v2.2A4 4 0 0 0 9 18h6a4 4 0 0 0 2-7.8V8a5 5 0 0 0-5-5z"/><path d="M9 13h6"/><path d="M10 17v4"/><path d="M14 17v4"/></svg></span>
       <span>
         <strong>AI 모델링</strong>
         <small>예측 모델, 데이터 처리, LSTM 실험 기록</small>
       </span>
     </a>
-    <a class="site-home-card" href="/docs/%EC%97%85%EB%AC%B4%EC%9A%A9%EC%95%B1%EA%B0%9C%EB%B0%9C/example/">
+    <a class="site-home-card" href="/docs/business-web-app/example/">
       <span class="site-home-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4"/><path d="M15 1v4"/><path d="M9 19v4"/><path d="M15 19v4"/><path d="M1 9h4"/><path d="M1 15h4"/><path d="M19 9h4"/><path d="M19 15h4"/><path d="M9 12h6"/></svg></span>
       <span>
         <strong>Embedded System</strong>

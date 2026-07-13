@@ -169,7 +169,7 @@ ATTR_HTML overrides ATTR_ORG when both define the same key."
   "Return Hugo Markdown target path from Org keywords in ROOT for SOURCE."
   (let* ((section (or (getenv "SITE_HUGO_SECTION")
                       (site/org-keyword "hugo_section")
-                      "docs/bitcoin-price-prediction"))
+                      "docs/machine-learning/bitcoin-price-prediction"))
          (section (string-remove-prefix "/" section))
          (section (string-remove-prefix "content/" section))
          (name (or (getenv "SITE_EXPORT_FILE_NAME")
@@ -184,7 +184,7 @@ When called interactively from an Org buffer, use that buffer as SOURCE.
 The target can be controlled with these Org keywords:
 
   #+hugo_base_dir: ~/Documents/hugo_doc
-  #+hugo_section: docs/bitcoin-price-prediction
+  #+hugo_section: docs/machine-learning/bitcoin-price-prediction
   #+export_file_name: example"
   (interactive)
   (let* ((source (expand-file-name

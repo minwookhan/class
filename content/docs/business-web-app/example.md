@@ -3,7 +3,7 @@ title: "장비대여시스템"
 author: ["minwook Han"]
 draft: false
 toc: true
-weight: 1
+weight: 2
 ---
 
 ## <span class="section-num">1</span> 장비관리 PRD 요청 {#장비관리-prd-요청}

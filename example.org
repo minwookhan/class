@@ -2,7 +2,7 @@
 #+options: toc:nil num:nil ^:nil
 #+property: header-args :eval never-export
 #+hugo_base_dir: ~/Documents/hugo_doc
-#+hugo_section: docs/bitcoin-price-prediction
+#+hugo_section: docs/machine-learning/bitcoin-price-prediction
 #+export_file_name: example
 
 * 비트코인 가격 예측 예제 - 단계별 역할과 코드
@@ -224,4 +224,3 @@ plt.show()
 - LSTM units, window_size, epochs 변경 실험
 - "이걸로 부자 될 수 있나요?" → 시장 효율성 가설 토론
 #+END_QUOTE
-
