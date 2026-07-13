@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: Hugo export header
+# key: hgx
+# --
+#+title: ${1:Title}
+#+property: header-args :eval never-export
+#+options: toc:nil num:nil ^:nil
+#+hugo_base_dir: ${2:~/Documents/hugo_doc}
+#+hugo_section: docs/${3:machine-learning/bitcoin-price-prediction}
+#+export_file_name: ${4:example}
+#+hugo_front_matter_format: yaml
+#+hugo_custom_front_matter: :toc true :weight ${5:1}
+
+$0
