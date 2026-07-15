@@ -1,5 +1,7 @@
 ---
-title: "Pdf Hwpx"
+sidebar:
+  exclude: true
+title: "2 Pdf Hwpx"
 author: ["minwook Han"]
 draft: false
 toc: true
@@ -36,9 +38,6 @@ weight: 2
 
 [https://ai.studio/apps/926c33e9-7a9e-42fe-9f9c-78c0a8dde217](https://ai.studio/apps/926c33e9-7a9e-42fe-9f9c-78c0a8dde217)
 
--   예제 pdf
-    [예제_pdf](/ox-hugo/selenium-python.pdf)
-
 {{< figure src="/ox-hugo/20260711_220447_screenshot.png" caption="<span class=\"figure-number\">Figure 1: </span>pdf 관리 1차 완성" >}}
 
 
@@ -65,10 +64,6 @@ weight: 2
 2. rhwp 패키지를 추가해서 구현하라. --> https://github.com/edwardkim/rhwp
 3. rhwp 패키지를 설치하는데 필요한 환경을 구성해서 사용하라
 ```
-
--   예제 hwp 파일
-
-[예제_hwp_파일](/ox-hugo/예제_hwp_대관신청서.hwp)
 
 {{< figure src="/ox-hugo/20260711_223136_screenshot.png" >}}
 
@@ -137,11 +132,9 @@ weight: 2
 
 ### 체크포인트 {#체크포인트}
 
-<https://ai.studio/apps/62bc42e8-3a00-4da7-a921-3ad9d1b79b99>
+[https://ai.studio/apps/62bc42e8-3a00-4da7-a921-3ad9d1b79b99](https://ai.studio/apps/62bc42e8-3a00-4da7-a921-3ad9d1b79b99)
 
 
 ## 배포하기 {#배포하기}
 
 -   github에 저장 한 뒤 vercel 에 배포하기
-
-<https://pdfhwp.vercel.app/>
