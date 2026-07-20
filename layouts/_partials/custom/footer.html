@@ -70,3 +70,25 @@
     });
   })();
 </script>
+
+
+<script>
+  (() => {
+    document.addEventListener("click", (event) => {
+      const link = event.target.closest("a[data-html-file-link]");
+      if (!link || (!event.ctrlKey && !event.metaKey)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const downloadLink = document.createElement("a");
+      const url = new URL(link.href, window.location.href);
+      downloadLink.href = url.href;
+      downloadLink.download = decodeURIComponent(url.pathname.split("/").pop() || "document.html");
+      downloadLink.hidden = true;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+    });
+  })();
+</script>

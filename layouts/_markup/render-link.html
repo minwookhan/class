@@ -17,12 +17,14 @@
 {{- with . -}}
 {{- $isExternal := or (strings.HasPrefix .Destination "http://") (strings.HasPrefix .Destination "https://") -}}
 {{- $extension := strings.ToLower (path.Ext $url.Path) -}}
+{{- $isHTML := in (slice ".html" ".htm") $extension -}}
 {{- $downloadExtensions := slice ".hwp" ".hwpx" ".pdf" ".odt" ".doc" ".docx" ".ppt" ".pptx" ".xls" ".xlsx" ".zip" ".7z" ".rar" -}}
 {{- $isOrgAsset := strings.HasPrefix $url.Path "/org-assets/" -}}
-{{- $isDownload := and (not $isExternal) (or $isOrgAsset (in $downloadExtensions $extension)) -}}
+{{- $isDownload := and (not $isExternal) (not $isHTML) (or $isOrgAsset (in $downloadExtensions $extension)) -}}
 <a href="{{ $dest | safeURL }}"
    {{- with .Title -}} title="{{ . }}"{{- end -}}
    {{- if $isExternal -}} target="_blank" rel="noopener noreferrer"{{- end -}}
+   {{- if and (not $isExternal) $isHTML -}} data-html-file-link{{- end -}}
    {{- if $isDownload -}} download{{- end -}}
 >
   {{- .Text | safeHTML -}}
