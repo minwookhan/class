@@ -47,3 +47,26 @@
     }
   })();
 </script>
+
+<script>
+  (() => {
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-site-toc-action]");
+      if (!button) return;
+
+      const container = button.closest(".site-toc-panel-wrap");
+      if (!container) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const panel = container.querySelector(".site-toc-panel");
+      const expand = button.dataset.siteTocAction === "expand";
+
+      if (panel) panel.open = true;
+      container.querySelectorAll(".site-toc-fold").forEach((fold) => {
+        fold.open = expand;
+      });
+    });
+  })();
+</script>

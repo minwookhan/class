@@ -18,7 +18,8 @@
 {{- $isExternal := or (strings.HasPrefix .Destination "http://") (strings.HasPrefix .Destination "https://") -}}
 {{- $extension := strings.ToLower (path.Ext $url.Path) -}}
 {{- $downloadExtensions := slice ".hwp" ".hwpx" ".pdf" ".odt" ".doc" ".docx" ".ppt" ".pptx" ".xls" ".xlsx" ".zip" ".7z" ".rar" -}}
-{{- $isDownload := and (not $isExternal) (in $downloadExtensions $extension) -}}
+{{- $isOrgAsset := strings.HasPrefix $url.Path "/org-assets/" -}}
+{{- $isDownload := and (not $isExternal) (or $isOrgAsset (in $downloadExtensions $extension)) -}}
 <a href="{{ $dest | safeURL }}"
    {{- with .Title -}} title="{{ . }}"{{- end -}}
    {{- if $isExternal -}} target="_blank" rel="noopener noreferrer"{{- end -}}

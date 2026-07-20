@@ -10,16 +10,30 @@
   {{- if $toc }}
     <div class="hextra-scrollbar hx:sticky hx:top-16 hx:overflow-y-auto hx:pr-4 hx:pt-6 hx:text-sm [hyphens:auto] hx:max-h-[calc(100vh-var(--navbar-height)-env(safe-area-inset-bottom))] hx:ltr:-mr-4 hx:rtl:-ml-4">
       {{- with .Fragments.Headings -}}
-        <details class="site-toc-panel" open>
+        <div class="site-toc-panel-wrap">
+          <details class="site-toc-panel" open>
           <summary class="site-toc-panel-summary hx:mb-4 hx:font-semibold hx:tracking-tight">{{ $onThisPage }}</summary>
           <div class="site-toc-panel-body">
-            {{- range . -}}
-              <ul class="site-toc-list">
-                {{- with .Headings -}}{{ template "toc-subheading" (dict "headings" . "level" 0) }}{{- end -}}
-              </ul>
-            {{- end -}}
+            <ul class="site-toc-list">
+              {{ template "toc-subheading" (dict "headings" . "level" 0) }}
+            </ul>
           </div>
-        </details>
+          </details>
+          <div class="site-toc-controls" aria-label="목차 트리 제어">
+            <button type="button" class="site-toc-control" data-site-toc-action="expand" aria-label="목차 모두 펼치기" title="목차 모두 펼치기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m7 13 5 5 5-5"></path>
+                <path d="m7 6 5 5 5-5"></path>
+              </svg>
+            </button>
+            <button type="button" class="site-toc-control" data-site-toc-action="collapse" aria-label="목차 1단계만 보기" title="목차 1단계만 보기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m17 11-5-5-5 5"></path>
+                <path d="m17 18-5-5-5 5"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
       {{- end -}}
 
       {{- $borderClass := "hx:mt-8 hx:border-t hx:bg-white hx:pt-8 hx:shadow-[0_-12px_16px_white] hx:dark:bg-dark hx:dark:shadow-[0_-12px_16px_#111]" -}}

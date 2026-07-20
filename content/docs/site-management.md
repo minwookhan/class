@@ -125,7 +125,7 @@ hugo --gc --minify --cleanDestinationDir
 로컬 서버는 `1313` 포트만 사용한다.
 
 ```bash
-hugo server --disableFastRender --port 1313
+hugo server --disableFastRender --renderToMemory --port 1313
 ```
 
 ## 배포 흐름

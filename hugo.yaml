@@ -16,7 +16,7 @@ markup:
 
 menu:
   main:
-    - name: 업무용웹앱
+    - name: 과목
       pageRef: /docs
       weight: 1
     - name: 검색

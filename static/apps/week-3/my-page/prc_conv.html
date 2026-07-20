@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.min.js" integrity="sha512-iZ2ORl595Wx6miw+GuadDet4WQbdSWS3JLMoNfY8cRGoEFy6oT3G9IbcrBeL6AfkgpA51ETt/faX6yLV+/gFJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      (function() {
+        // Capture host references before any artifact code runs: Window.parent
+        // is [Replaceable] (a top-level `var parent` in artifact code would
+        // replace the accessor with a data property), and a top-level
+        // `const crypto` would shadow the global — either would otherwise
+        // silently break the bridge for artifacts that worked before.
+        const realParent = window.parent;
+        const cryptoObj = window.crypto;
+        // crypto.randomUUID exists only in Secure Contexts; fall back to a
+        // unique non-crypto id elsewhere (http://LAN-IP dev flows) —
+        // uniqueness is what the bridge needs, unpredictability is
+        // defense-in-depth on top of the source guards.
+        const newRequestId =
+          cryptoObj && typeof cryptoObj.randomUUID === "function"
+            ? function () { return cryptoObj.randomUUID(); }
+            : function () { return Date.now() + "-" + Math.random(); };
+        const originalConsole = window.console;
+        window.console = {
+          log: (...args) => {
+            originalConsole.log(...args);
+            realParent.postMessage({ type: 'console', message: args.join(' ') }, '*');
+          },
+          error: (...args) => {
+            originalConsole.error(...args);
+            realParent.postMessage({ type: 'console', message: 'Error: ' + args.join(' ') }, '*');
+          },
+          warn: (...args) => {
+            originalConsole.warn(...args);
+            realParent.postMessage({ type: 'console', message: 'Warning: ' + args.join(' ') }, '*');
+          }
+        };
+
+        // Bridge request ids are crypto-random (not sequential) so they
+        // cannot be predicted by other frames in the tab.
+        let callbacksMap = new Map();
+        let streamControllers = new Map();
+        
+        window.claude = {
+          complete: (prompt) => {
+            return new Promise((resolve, reject) => {
+              const id = newRequestId();
+              callbacksMap.set(id, { resolve, reject });
+              realParent.postMessage({ type: 'claudeComplete', id, prompt }, '*');
+            });
+          }
+        };
+
+        window.storage = {
+          get: (key, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = newRequestId();
+              callbacksMap.set(id, { resolve, reject });
+              realParent.postMessage({ type: 'storageGet', id, key, shared }, '*');
+            });
+          },
+          set: (key, value, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = newRequestId();
+              callbacksMap.set(id, { resolve, reject });
+              realParent.postMessage({ type: 'storageSet', id, key, value, shared }, '*');
+            });
+          },
+          delete: (key, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = newRequestId();
+              callbacksMap.set(id, { resolve, reject });
+              realParent.postMessage({ type: 'storageDelete', id, key, shared }, '*');
+            });
+          },
+          list: (prefix, shared = false) => {
+            return new Promise((resolve, reject) => {
+              const id = newRequestId();
+              callbacksMap.set(id, { resolve, reject });
+              realParent.postMessage({ type: 'storageList', id, prefix, shared }, '*');
+            });
+          }
+        };
+
+        let pendingBlobs = new Map();
+        URL.createObjectURL = (blob) => {
+          // Store the blob and create an ID and URL for it
+          const blobId = `blob-${Date.now()}-${Math.random()}`;
+          pendingBlobs.set(blobId, blob);
+          return `blob-request://${blobId}`;
+        };
+
+        URL.revokeObjectURL = (url) => {
+          // Remove the blob from our store
+          const blobId = url.replace("blob-request://", "");
+          pendingBlobs.delete(blobId);
+        };
+
+        const getBlobFromURL = (url) => {
+          const blobId = url.replace("blob-request://", "");
+          return pendingBlobs.get(blobId);
+        };
+
+        // Override global fetch with streaming support
+        window.fetch = (url, init = {}) => {
+          return new Promise((resolve, reject) => {
+            const id = newRequestId();
+            const channelId = `fetch-${id}-${Date.now()}`;
+            
+            callbacksMap.set(id, { 
+              resolve: (response) => {
+                // Null-body statuses: Response(stream, {status: 204}) throws
+                // per the Fetch spec, which would escape this resolver and
+                // hang the artifact's await forever.
+                if (response.status === 204 || response.status === 205 || response.status === 304) {
+                  try {
+                    resolve(new Response(null, {
+                      status: response.status,
+                      statusText: response.statusText,
+                      headers: response.headers
+                    }));
+                  } catch (err) {
+                    // Invalid statusText/header bytes can throw here too.
+                    reject(new TypeError(
+                      'Bridge fetch: unconstructable response (status ' + response.status + ')'
+                    ));
+                  }
+                  return;
+                }
+                // Create a ReadableStream for the response body
+                const stream = new ReadableStream({
+                  start(controller) {
+                    streamControllers.set(channelId, controller);
+                  },
+                  cancel() {
+                    streamControllers.delete(channelId);
+                  }
+                });
+                
+                // Create and return the Response with the stream. Response()
+                // requires status in [200, 599]; an opaque/no-cors fetch
+                // forwards status 0, which would throw here and escape the
+                // resolver, hanging the artifact's await. Surface it as a
+                // network-error-shaped rejection instead.
+                try {
+                  resolve(new Response(stream, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                  }));
+                } catch (err) {
+                  streamControllers.delete(channelId);
+                  reject(new TypeError(
+                    'Bridge fetch: unconstructable response (status ' + response.status + ')'
+                  ));
+                }
+              },
+              reject,
+              channelId
+            });
+            
+            realParent.postMessage({
+              type: 'proxyFetch',
+              id,
+              url,
+              init,
+              channelId
+            }, '*');
+          });
+        };
+
+        window.addEventListener('message', async (event) => {
+          // Only the embedding parent may drive the bridge — sibling and
+          // nested frames can also postMessage into this window.
+          if (event.source !== realParent) return;
+          if (event.data.type === 'takeScreenshot') {
+            // Echo the request's nonce so the requester can correlate the
+            // reply to ITS request — a reply without the expected nonce
+            // (e.g. from a stale pre-remount artifact) is ignored upstream.
+            const screenshotNonce = event.data.nonce;
+            const rootElement = document.getElementById('artifacts-component-root-html');
+            if (!rootElement) {
+              realParent.postMessage({
+                type: 'screenshotError',
+                nonce: screenshotNonce,
+                error: new Error('Root element not found'),
+              }, '*');
+              return;
+            }
+            // Catch CDN load failures (htmlToImage undefined) and toPng errors
+            // so the parent always gets a response instead of hanging forever.
+            try {
+              const screenshot = await htmlToImage.toPng(rootElement, {
+                imagePlaceholder:
+                  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjePDgwX8ACOQDoNsk0PMAAAAASUVORK5CYII=",
+              });
+              realParent.postMessage({
+                type: 'screenshotData',
+                nonce: screenshotNonce,
+                data: screenshot,
+              }, '*');
+            } catch (err) {
+              realParent.postMessage({
+                type: 'screenshotError',
+                nonce: screenshotNonce,
+                error: err instanceof Error ? err : new Error(String(err)),
+              }, '*');
+            }
+          } else if (event.data.type === 'claudeComplete') {
+            const callback = callbacksMap.get(event.data.id);
+            if (!callback) return;
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.completion);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'proxyFetchResponse') {
+            const callback = callbacksMap.get(event.data.id);
+            if (!callback) return;
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+              callbacksMap.delete(event.data.id);
+            } else {
+              // Initial response with headers, status, etc.
+              callback.resolve({
+                status: event.data.status,
+                statusText: event.data.statusText,
+                headers: event.data.headers
+              });
+              // Don't delete the callback yet if streaming
+              if (!event.data.body) {
+                callbacksMap.delete(event.data.id);
+              }
+            }
+          } else if (event.data.type === 'proxyFetchStream') {
+            // Handle streaming data chunks
+            const controller = streamControllers.get(event.data.channelId);
+            if (controller) {
+              if (event.data.error) {
+                controller.error(new Error(event.data.error));
+                streamControllers.delete(event.data.channelId);
+              } else if (event.data.done) {
+                controller.close();
+                streamControllers.delete(event.data.channelId);
+                // Clean up the callback
+                const callback = Array.from(callbacksMap.entries()).find(
+                  ([_, value]) => value.channelId === event.data.channelId
+                );
+                if (callback) {
+                  callbacksMap.delete(callback[0]);
+                }
+              } else if (event.data.chunk) {
+                controller.enqueue(new Uint8Array(event.data.chunk));
+              }
+            }
+          } else if (event.data.type === 'storageGet') {
+            const callback = callbacksMap.get(event.data.id);
+            if (!callback) return;
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'storageSet') {
+            const callback = callbacksMap.get(event.data.id);
+            if (!callback) return;
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'storageDelete') {
+            const callback = callbacksMap.get(event.data.id);
+            if (!callback) return;
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          } else if (event.data.type === 'storageList') {
+            const callback = callbacksMap.get(event.data.id);
+            if (!callback) return;
+            if (event.data.error) {
+              callback.reject(new Error(event.data.error));
+            } else {
+              callback.resolve(event.data.result);
+            }
+            callbacksMap.delete(event.data.id);
+          }
+        });
+
+        window.addEventListener('click', (event) => {
+          const isEl = event.target instanceof HTMLElement;
+          if (!isEl) return;
+    
+          // find ancestor links
+          const linkEl = event.target.closest("a");
+          if (!linkEl || !linkEl.href) return;
+    
+          event.preventDefault();
+          event.stopImmediatePropagation();
+    
+          if (linkEl.href.startsWith("blob-request:")) {
+            const blob = getBlobFromURL(linkEl.href);
+            if (!blob) return;
+            void blob.arrayBuffer().then((data) => {
+              realParent.postMessage({
+                type: "downloadFile",
+                filename: linkEl.download,
+                data,
+                mimeType: blob.type || "application/octet-stream",
+              });
+            });
+          } else if (linkEl.href.startsWith("data:")) {
+            const [header, base64Data] = linkEl.href.split(",");
+            const mimeMatch = header.match(/data:([^;]+)/);
+            const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+            const binaryString = atob(base64Data);
+            const data = Uint8Array.from(binaryString, (c) =>
+              c.charCodeAt(0),
+            ).buffer;
+            realParent.postMessage({
+              type: "downloadFile",
+              filename: linkEl.download,
+              data,
+              mimeType,
+            });
+          } else {
+            let linkUrl;
+            try {
+              linkUrl = new URL(linkEl.href);
+            } catch (error) {
+              return;
+            }
+    
+            if (linkUrl.hostname === window.location.hostname) return;
+      
+            realParent.postMessage({
+              type: 'openExternal',
+              href: linkEl.href,
+            }, '*');
+          }
+      });
+
+        const originalOpen = window.open;
+        window.open = function (url) {
+          realParent.postMessage({
+            type: "openExternal",
+            href: url,
+          }, "*");
+        };
+
+        window.addEventListener('error', (event) => {
+          realParent.postMessage({ type: 'console', message: 'Uncaught Error: ' + event.message }, '*');
+        });
+      })();
+    </script>
+  
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국순당 소모품관리 앱 · PRD 인터뷰 기록</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F1E7;
+    --paper-deep:#EEE5D2;
+    --line:#DCCFAE;
+    --ink:#26221B;
+    --ink-soft:#726B5B;
+    --brass:#A07C2E;
+    --stamp:#A93226;
+    --stamp-deep:#7C2419;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:48px 20px 64px;
+  }
+  .wrap{ width:100%; max-width:640px; }
+
+  .masthead{ text-align:center; margin-bottom:28px; position:relative; }
+  .eyebrow{
+    margin:0 0 10px;
+    font-size:12px;
+    letter-spacing:0.28em;
+    color:var(--brass);
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  h1{
+    margin:0 0 8px;
+    font-family:'Noto Serif KR', serif;
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    margin:0 0 22px;
+    font-size:14px;
+    color:var(--ink-soft);
+  }
+  .dl-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:3px;
+    padding:10px 18px;
+    font-size:13px;
+    font-weight:500;
+    font-family:inherit;
+    cursor:pointer;
+    letter-spacing:0.02em;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .dl-btn:hover{ background:#3a352a; }
+  .dl-btn:active{ transform:scale(0.97); }
+  .dl-btn:focus-visible{ outline:2px solid var(--brass); outline-offset:3px; }
+
+  .ribbon-track{
+    height:3px;
+    background:var(--line);
+    border-radius:2px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .ribbon{
+    height:100%;
+    width:4.3%;
+    background:var(--stamp);
+    transition:width .35s cubic-bezier(.4,0,.2,1);
+  }
+
+  .ledger{
+    position:relative;
+    background:var(--paper-deep);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:34px 36px 30px;
+    box-shadow:0 1px 0 var(--line), 0 18px 40px -28px rgba(38,34,27,0.35);
+    opacity:1;
+    transform:translateY(0);
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .ledger.swap{ opacity:0; transform:translateY(6px); }
+
+  .ledger-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:22px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .tag{
+    font-family:'Noto Serif KR', serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.08em;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid var(--brass);
+    border-radius:2px;
+    padding:3px 10px;
+  }
+  .page{ font-size:12px; color:var(--ink-soft); letter-spacing:0.04em; }
+
+  .block{ display:flex; gap:16px; align-items:flex-start; }
+  .mark{
+    font-family:'Noto Serif KR', serif;
+    font-size:26px;
+    font-weight:700;
+    width:38px;
+    height:38px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    border:1px solid var(--line);
+    color:var(--brass);
+    background:var(--paper);
+  }
+  .a-block .mark{ color:var(--stamp); border-color:var(--stamp); }
+
+  .block-label{
+    margin:2px 0 6px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .block-text{
+    margin:0;
+    font-size:17px;
+    line-height:1.65;
+    color:var(--ink);
+  }
+  .q-block .block-text{ font-family:'Noto Serif KR', serif; font-weight:500; }
+  .a-block .block-text{ font-weight:500; }
+
+  .a-block{ position:relative; }
+
+  .stitch{
+    height:1px;
+    margin:22px 0;
+    background-image:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
+  }
+
+  .stamp{
+    position:absolute;
+    top:-6px;
+    right:-4px;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    border:2px solid var(--stamp);
+    color:var(--stamp);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Noto Serif KR', serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.05em;
+    transform:rotate(-10deg);
+    opacity:0.85;
+  }
+
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:22px;
+  }
+  .nav-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:500;
+    padding:10px 18px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, opacity .15s ease;
+  }
+  .nav-btn:hover:not(:disabled){ background:var(--paper); border-color:var(--brass); }
+  .nav-btn:disabled{ opacity:0.35; cursor:default; }
+  .nav-btn:focus-visible{ outline:2px solid var(--brass); outline-offset:2px; }
+  .counter{ font-size:12px; color:var(--ink-soft); letter-spacing:0.04em; }
+
+  @media (prefers-reduced-motion: reduce){
+    .ledger, .ribbon{ transition:none; }
+  }
+
+  @media (max-width:480px){
+    body{ padding:32px 14px 48px; }
+    .ledger{ padding:26px 20px 24px; }
+    h1{ font-size:24px; }
+    .block-text{ font-size:15.5px; }
+    .stamp{ width:46px; height:46px; font-size:11px; top:-4px; right:-2px; }
+  }
+</style>
+</head>
+<body id="artifacts-component-root-html">
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">PRD Interview Log</p>
+    <h1>국순당 소모품관리 앱</h1>
+    <p class="sub">요구사항 정의 대화록 · 質疑應答 全22問</p>
+    <button class="dl-btn" id="downloadBtn" aria-label="이 페이지의 소스코드를 HTML 파일로 다운로드">
+      <span aria-hidden="true">⬇</span> 소스코드 다운로드
+    </button>
+  </header>
+
+  <div class="ribbon-track"><div class="ribbon" id="ribbon" style="width: 17%;"></div></div>
+
+  <main class="ledger" id="ledger">
+    <div class="ledger-head">
+      <span class="tag" id="tag">Q04</span>
+      <span class="page" id="pageLabel">4 / 23</span>
+    </div>
+
+    <section class="block q-block">
+      <div class="mark" aria-hidden="true">問</div>
+      <div>
+        <p class="block-label">질문 · AI</p>
+        <p class="block-text" id="qText">관리자 계정은 어떻게 생성하나?</p>
+      </div>
+    </section>
+
+    <div class="stitch"></div>
+
+    <section class="block a-block">
+      <div class="mark" aria-hidden="true">答</div>
+      <div>
+        <p class="block-label">답변 · 나</p>
+        <p class="block-text" id="aText">초기 관리자 1명 수동 생성 후, 관리자가 다른 회원 권한 승격</p>
+      </div>
+      <div class="stamp" id="stamp" aria-hidden="true">확정</div>
+    </section>
+  </main>
+
+  <nav class="nav">
+    <button class="nav-btn" id="prevBtn">← 이전</button>
+    <span class="counter" id="counter">4 / 23</span>
+    <button class="nav-btn" id="nextBtn">다음 →</button>
+  </nav>
+
+</div>
+
+<script>
+const pairs = [
+  {q:'회원가입/로그인 방식은?', a:'firebase 이메일 가입'},
+  {q:'소속 부서는 어떻게 정하나?', a:'회원가입 시 본인이 부서 선택'},
+  {q:'회원가입 이메일 도메인 제한이 필요한가?', a:'도메인 제한 없음'},
+  {q:'관리자 계정은 어떻게 생성하나?', a:'초기 관리자 1명 수동 생성 후, 관리자가 다른 회원 권한 승격'},
+  {q:'승인 알림은 어떤 방식으로?', a:'웹에 로그인하면 알림 뱃지 생성'},
+  {q:'재고 수량은 어떻게 관리하나?', a:'구매완료 시 입고수량 입력 → 자동차감 + 수동입력 + 엑셀 일괄입력'},
+  {q:'최소재고 미달 시 관리자 알림 기능, 넣을까?', a:'불필요'},
+  {q:'관리자 권한 범위는?', a:'전체 통합 관리자 (모든 부서 승인 가능)'},
+  {q:'품목별 단가를 등록해서 신청금액을 자동계산할까?', a:'예 — 단가 등록, 신청금액 자동계산'},
+  {q:'부서별 월 예산 한도 설정 및 초과 시 경고 기능, 필요할까?', a:'필요'},
+  {q:"관리자가 '취소' 처리하면 신청자는 수정 후 재제출하나?", a:'수정 후 재제출 가능 (기존 신청 유지, 상태만 변경)'},
+  {q:"신청자가 새로 만든 '추가품목'은 승인 후 어떻게 되나?", a:'해당 신청 건에서만 사용되고 끝'},
+  {q:'한 번 신청 시 여러 품목을 함께 담을 수 있나?', a:'장바구니 방식 (여러 품목 담아서 한번에 신청)'},
+  {q:'장바구니 신청 승인은 품목별로 따로 하나, 전체 한번에 하나?', a:'신청 건 전체 단위로만 승인/거절'},
+  {q:'플랫폼은?', a:'반응형 (모바일+PC 모두 지원)'},
+  {q:'통계 리포트에 그래프 시각화도 필요한가?', a:'그래프+표 모두 필요'},
+  {q:'관리자도 신규 신청 들어오면 알림받아야 하나?', a:'예, 관리자도 알림받음'},
+  {q:'신청내역/통계는 연도가 바뀌면 초기화되나?', a:'연도 바뀌면 새 연도 문서로 초기화 (과거 데이터는 조회만 가능)'},
+  {q:'신청자가 관리자 처리 전 본인 신청을 스스로 취소할 수 있나?', a:'가능 (대기중 상태에만)'},
+  {q:"'전체불출내역' PDF는 언제 생성하나?", a:'관리자가 기간 선택해서 수동생성'},
+  {q:'퇴사자 계정은 어떻게 처리하나?', a:'계정 비활성화 (신청이력 보존)'},
+  {q:'신청 시 구매처 링크나 참고이미지 첨부 기능 필요한가?', a:'불필요'},
+  {q:'22개 결정사항을 정리했다. 추가로 논의할 사항 있나? 없으면 "됐어"라고 답해줘.', a:'됐어'}
+];
+
+let idx = 0;
+const $ = id => document.getElementById(id);
+const ledger = $('ledger');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function paint(){
+  const p = pairs[idx];
+  $('tag').textContent = (idx < 22 ? 'Q' + String(idx+1).padStart(2,'0') : '종결');
+  $('pageLabel').textContent = (idx+1) + ' / ' + pairs.length;
+  $('counter').textContent = (idx+1) + ' / ' + pairs.length;
+  $('qText').textContent = p.q;
+  $('aText').textContent = p.a;
+  $('stamp').textContent = (idx === pairs.length - 1) ? '완료' : '확정';
+  $('ribbon').style.width = Math.round(((idx+1) / pairs.length) * 100) + '%';
+  $('prevBtn').disabled = idx === 0;
+  $('nextBtn').disabled = idx === pairs.length - 1;
+}
+
+function go(delta){
+  const next = idx + delta;
+  if(next < 0 || next >= pairs.length) return;
+  if(reduceMotion){
+    idx = next;
+    paint();
+    return;
+  }
+  ledger.classList.add('swap');
+  setTimeout(() => {
+    idx = next;
+    paint();
+    ledger.classList.remove('swap');
+  }, 160);
+}
+
+$('prevBtn').addEventListener('click', () => go(-1));
+$('nextBtn').addEventListener('click', () => go(1));
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowLeft') go(-1);
+  if(e.key === 'ArrowRight') go(1);
+});
+
+let touchX = null;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if(touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if(Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  touchX = null;
+}, {passive:true});
+
+$('downloadBtn').addEventListener('click', () => {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'PRD_대화기록_국순당_소모품관리앱.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+paint();
+</script>
+
+
+</body></html>

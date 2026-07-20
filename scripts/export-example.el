@@ -9,12 +9,60 @@
       org-export-with-smart-quotes nil
       org-export-with-sub-superscripts nil)
 
+(defun site/markdown-fence (code)
+  "Return a tilde fence longer than any tilde run in CODE."
+  (let ((max-run 0)
+        (start 0))
+    (while (string-match "~+" code start)
+      (setq max-run (max max-run (- (match-end 0) (match-beginning 0)))
+            start (match-end 0)))
+    (make-string (max 3 (1+ max-run)) ?~)))
+
 (defun site/markdown-src-block (src-block _contents _info)
   "Transcode SRC-BLOCK to a fenced Markdown code block."
   (let* ((raw-lang (or (org-element-property :language src-block) "text"))
          (lang (if (string= raw-lang "jupyter-python") "python" raw-lang))
-         (code (string-trim-right (org-element-property :value src-block))))
-    (format "```%s\n%s\n```\n" lang code)))
+         (code (string-trim-right (org-element-property :value src-block)))
+         (fence (site/markdown-fence code)))
+    (format "%s%s\n%s\n%s\n" fence lang code fence)))
+
+(defun site/markdown-table-cell (text)
+  "Return TEXT escaped for use inside a Markdown table cell."
+  (let ((cell (string-trim (replace-regexp-in-string "[[:space:]]+" " " (or text "")))))
+    (replace-regexp-in-string "|" "\\|" cell t t)))
+
+(defun site/markdown-table-row (cells)
+  "Return a Markdown table row from CELLS."
+  (concat "| " (string-join cells " | ") " |"))
+
+(defun site/markdown-table (table _contents info)
+  "Transcode Org TABLE to a Markdown pipe table."
+  (let (rows)
+    (org-element-map table (quote table-row)
+      (lambda (row)
+        (unless (eq (org-element-property :type row) (quote rule))
+          (let (cells)
+            (org-element-map row (quote table-cell)
+              (lambda (cell)
+                (push (site/markdown-table-cell
+                       (org-export-data (org-element-contents cell) info))
+                      cells))
+              info nil (quote table-cell))
+            (push (nreverse cells) rows))))
+      info nil (quote table-row))
+    (setq rows (nreverse rows))
+    (when rows
+      (let* ((column-count (apply (function max) (mapcar (function length) rows)))
+             (normalize (lambda (row)
+                          (append row (make-list (- column-count (length row)) ""))))
+             (header (funcall normalize (car rows)))
+             (body (mapcar normalize (cdr rows)))
+             (separator (make-list column-count "---")))
+        (concat
+         (mapconcat (function site/markdown-table-row)
+                    (append (list header separator) body)
+                    "\n")
+         "\n")))))
 
 (defvar site/export-source-dir nil)
 (defvar site/export-static-dir nil)
@@ -76,10 +124,18 @@ ATTR_HTML overrides ATTR_ORG when both define the same key."
    (site/attr-plist link :attr_org)
    (site/attr-plist link :attr_html)))
 
+(defun site/html-normalize-dimension (key value)
+  "Normalize VALUE for width/height HTML attributes."
+  (let ((text (format "%s" value)))
+    (if (and (memq key (quote (:width :height)))
+             (string-match (rx string-start (group (+ digit)) "px" string-end) text))
+        (match-string 1 text)
+      text)))
+
 (defun site/html-attrs (attrs allowed)
   "Return escaped HTML attributes from ATTRS, limited to ALLOWED keys."
   (mapconcat
-   #'identity
+   (function identity)
    (delq nil
          (mapcar
           (lambda (key)
@@ -87,7 +143,8 @@ ATTR_HTML overrides ATTR_ORG when both define the same key."
               (when (and value (not (string-empty-p value)))
                 (format "%s=\"%s\""
                         (string-remove-prefix ":" (symbol-name key))
-                        (site/html-escape-attribute value)))))
+                        (site/html-escape-attribute
+                         (site/html-normalize-dimension key value))))))
           allowed))
    " "))
 
@@ -140,7 +197,13 @@ ATTR_HTML overrides ATTR_ORG when both define the same key."
 
 (org-export-define-derived-backend 'site-hugo-md 'md
   :translate-alist '((src-block . site/markdown-src-block)
-                     (link . site/markdown-link)))
+                     (table . site/markdown-table)
+                     (link . site/markdown-link))
+  :menu-entry
+  '(?H "Export to Hugo"
+       ((?H "To Hugo markdown file"
+            (lambda (_async _subtreep _visible-only _body-only)
+              (site/export-org-to-hugo))))))
 
 (defconst site/default-root
   (expand-file-name ".." (file-name-directory (or load-file-name buffer-file-name)))
@@ -164,6 +227,18 @@ ATTR_HTML overrides ATTR_ORG when both define the same key."
            nil t)
           (string-trim (match-string-no-properties 1))
         default))))
+
+(defun site/custom-front-matter-value (key &optional default)
+  "Return KEY value from #+hugo_custom_front_matter, or DEFAULT."
+  (let ((tokens (split-string-and-unquote
+                 (or (site/org-keyword "hugo_custom_front_matter") "")))
+        value)
+    (while tokens
+      (let ((token (pop tokens)))
+        (if (string= token key)
+            (setq value (pop tokens))
+          (when tokens (pop tokens)))))
+    (or value default)))
 
 (defun site/export-target-from-keywords (root source)
   "Return Hugo Markdown target path from Org keywords in ROOT for SOURCE."
@@ -211,6 +286,8 @@ The target can be controlled with these Org keywords:
              (site/export-source-dir (file-name-directory source))
              (site/export-static-dir (expand-file-name "static" root))
              (title (site/org-keyword "title" "Example"))
+             (weight (site/custom-front-matter-value ":weight" "1"))
+             (toc (site/custom-front-matter-value ":toc" "true"))
              (body (org-export-as 'site-hugo-md nil nil t
                                   '(:with-title nil
                                     :with-toc nil
@@ -221,8 +298,8 @@ The target can be controlled with these Org keywords:
           (insert "---\n")
           (insert "title: " (site/yaml-quote title) "\n")
           (insert "linkTitle: " (site/yaml-quote title) "\n")
-          (insert "weight: 1\n")
-          (insert "toc: true\n")
+          (insert "weight: " weight "\n")
+          (insert "toc: " toc "\n")
           (insert "---\n\n")
           (insert body)
           (unless (string-suffix-p "\n" body)
@@ -230,7 +307,7 @@ The target can be controlled with these Org keywords:
         (message "Exported %s -> %s" source target)
         target))))
 
-(when noninteractive
+(when (and noninteractive (getenv "SITE_ORG_SOURCE"))
   (site/export-org-to-hugo))
 
 (provide 'export-example)

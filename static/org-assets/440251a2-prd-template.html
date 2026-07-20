@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRD 작성 프롬프트 명세서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef1ee;
+    --card:#fbfcfa;
+    --ink:#16211f;
+    --ink-2:#4a5a56;
+    --line:#c9d2cd;
+    --teal:#0f5a52;
+    --teal-soft:#e2eeeb;
+    --stamp:#b4392f;
+    --amber:#c98a13;
+    --amber-soft:#fbf1dc;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:28px 28px;
+    background-position:-1px -1px;
+    color:var(--ink);
+    font-family:var(--sans);
+    font-weight:400;
+    line-height:1.75;
+    padding:32px 16px 80px;
+  }
+  .sheet{
+    max-width:880px;margin:0 auto;
+    background:var(--card);
+    border:1px solid var(--ink);
+    box-shadow:6px 6px 0 rgba(22,33,31,.10);
+  }
+
+  /* ---- 문서 헤더 ---- */
+  header{
+    border-bottom:1px solid var(--ink);
+    padding:28px 32px 22px;
+    position:relative;overflow:hidden;
+  }
+  .doc-meta{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-2);
+    display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(24px,4.6vw,38px);line-height:1.25;
+    font-weight:700;margin:0 0 10px;letter-spacing:-.02em;
+  }
+  h1 em{font-style:normal;color:var(--teal)}
+  .subtitle{margin:0;color:var(--ink-2);font-size:14px;font-weight:300;max-width:52ch}
+  .stamp{
+    position:absolute;right:22px;top:26px;
+    width:96px;height:96px;border:3px double var(--stamp);border-radius:50%;
+    color:var(--stamp);display:grid;place-content:center;text-align:center;
+    transform:rotate(-13deg);opacity:.88;
+  }
+  .stamp b{display:block;font-size:19px;letter-spacing:.1em;line-height:1.1}
+  .stamp span{font-family:var(--mono);font-size:8px;letter-spacing:.12em;display:block;margin-top:4px}
+  @media (max-width:620px){.stamp{display:none}}
+
+  /* ---- 섹션 ---- */
+  section{border-bottom:1px solid var(--line);padding:26px 32px 30px}
+  section:last-child{border-bottom:0}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .no{
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    color:#fff;background:var(--teal);padding:2px 8px;letter-spacing:.06em;flex:none;
+  }
+  h2{font-size:19px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .hint{
+    font-size:13px;color:var(--ink-2);font-weight:300;
+    margin:0 0 16px;padding-left:0;
+  }
+
+  /* ---- 리스트 ---- */
+  ol.rules{list-style:none;counter-reset:r;margin:0;padding:0}
+  ol.rules li{
+    counter-increment:r;position:relative;
+    padding:9px 0 9px 40px;border-bottom:1px dashed var(--line);font-size:15px;
+  }
+  ol.rules li:last-child{border-bottom:0}
+  ol.rules li::before{
+    content:counter(r,decimal-leading-zero);
+    position:absolute;left:0;top:11px;
+    font-family:var(--mono);font-size:11px;font-weight:600;color:var(--teal);
+    border:1px solid var(--line);padding:1px 6px;background:var(--teal-soft);
+  }
+  ul.dash{list-style:none;margin:0 0 16px;padding:0}
+  ul.dash li{position:relative;padding:4px 0 4px 18px;font-size:14px;color:var(--ink-2)}
+  ul.dash li::before{content:"—";position:absolute;left:0;color:var(--teal)}
+
+  /* ---- 예시 블록 ---- */
+  .example{
+    margin:14px 0 0;border:1px solid var(--line);background:#f4f6f3;
+  }
+  .example .tag{
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    background:var(--line);color:var(--ink);padding:3px 10px;display:inline-block;
+  }
+  .example pre{
+    margin:0;padding:12px 14px 16px;overflow-x:auto;
+    font-family:var(--mono);font-size:12.5px;line-height:1.8;color:var(--ink);
+    white-space:pre;
+  }
+
+  /* ---- Strong Rule 강조 ---- */
+  .strong{background:var(--amber-soft)}
+  .strong .no{background:var(--amber)}
+  .strong ol.rules li::before{color:#8a5e08;background:#f5e6c4;border-color:#e0cb9a}
+  .strong .example{background:#f7eeda;border-color:#e5d4ab}
+  .strong .example .tag{background:#e5d4ab}
+
+  /* ---- 행위자 카드 ---- */
+  .actor{border-left:3px solid var(--teal);padding-left:16px;margin-top:4px}
+  .actor.a2{border-left-color:var(--stamp)}
+  .actor.a2 ol.rules li::before{color:var(--stamp);background:#f7e6e4;border-color:#e6c9c5}
+
+  /* ---- 테이블 ---- */
+  .tbl-wrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line)}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;font-family:var(--mono);background:#fff}
+  th,td{padding:7px 11px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:var(--teal);color:#fff;font-weight:500;letter-spacing:.04em;font-size:11.5px}
+  tbody tr:nth-child(even){background:#f6f8f5}
+  tbody tr:last-child td{border-bottom:0}
+  td.state-ok{color:var(--teal);font-weight:600}
+  td.state-out{color:var(--stamp);font-weight:600}
+  td.num{text-align:right}
+
+  footer{
+    padding:18px 32px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.12em;color:var(--ink-2);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    border-top:1px solid var(--ink);background:#f4f6f3;
+  }
+  @media (max-width:560px){
+    body{padding:16px 8px 48px}
+    section,header,footer{padding-left:18px;padding-right:18px}
+  }
+  @media print{
+    body{background:#fff;padding:0}
+    .sheet{border:0;box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="doc-meta">
+      <span>DOC · PRD-PROMPT</span><span>REV. 1.0</span><span>대상 · 웹앱 기획</span>
+    </div>
+    <h1>장비 대여 관리 웹앱<br><em>PRD 작성 프롬프트 명세서</em></h1>
+    <p class="subtitle">기획 전문가와 초보 기획자가 대화로 PRD·FS 문서를 완성하기 위한 입력 양식과 진행 규칙.</p>
+    <div class="stamp"><b>기획</b><span>DRAFT</span></div>
+  </header>
+
+  <!-- 1. Instruction -->
+  <section>
+    <div class="sec-head"><span class="no">A</span><h2>Instruction · 진행 지시</h2></div>
+    <p class="hint">역할과 대화 방식을 먼저 고정한다.</p>
+    <ol class="rules">
+      <li>너는 웹앱 기획 전문가이다.</li>
+      <li>나는 초보자이다. 전문용어는 쉽게 설명하라 (용어 해설 추가).</li>
+      <li>나는 <b>{개발앱목적}</b>을 만들고 싶다.</li>
+      <li>Google AI Studio를 사용한다.</li>
+      <li>PRD 문서, FS 문서를 작성하려 한다.</li>
+      <li>PRD 문서 작성을 위한 토론을 하자.</li>
+      <li>필요한 정보는 나에게 질문하라.</li>
+      <li>서술어·수식어 없이 핵심만 간단한 대화식으로 진행.</li>
+      <li>선택 질문은 객관식 또는 단답형으로, 한 번에 하나씩 진행.</li>
+      <li>웹앱의 기능 정보는 <b>{Rule}</b>을 참고한다.</li>
+    </ol>
+  </section>
+
+  <!-- 2. 개발앱목적 -->
+  <section>
+    <div class="sec-head"><span class="no">B</span><h2>입력 · 개발앱목적</h2></div>
+    <ul class="dash">
+      <li>이 앱의 기능과 목적을 명확히 한다.</li>
+      <li>사용자 정보와, 그 사용자가 앱을 통해 얻는 기능을 적는다.</li>
+    </ul>
+    <div class="example"><span class="tag">example</span>
+<pre>- 회사에서 사용하는 장비들의 대여신청 및 승인, 관리하는 앱을 만든다
+- 일반사원이 신청하면 관리자가 승인, 관리한다</pre>
+    </div>
+  </section>
+
+  <!-- 3. Strong Rule -->
+  <section class="strong">
+    <div class="sec-head"><span class="no">C</span><h2>Strong Rule · 필수 준수</h2></div>
+    <p class="hint">대화를 끝내는 조건과 산출물 형식.</p>
+    <ol class="rules">
+      <li>내가 <b>“됐어”</b> 할 때까지 PRD 관련 검토와 질문을 이어가라.</li>
+      <li>답변을 받으면 예상되는 문제와 개선책을 고민해서 대화를 이어가라.</li>
+      <li>더 나은 새로운 기능과 아이디어가 있으면 적극 추천하라.</li>
+      <li>대화가 종료되면 <b>“PRD 문서”</b>, <b>“FS 문서”</b>를 Markdown으로 출력.</li>
+    </ol>
+  </section>
+
+  <!-- 4. Rule -->
+  <section>
+    <div class="sec-head"><span class="no">D</span><h2>입력 · Rule (사전 배경 정보)</h2></div>
+    <ul class="dash">
+      <li>일반적인 사전 중요 정보를 적는다.</li>
+      <li>기본 구조에 대한 정보와 큰 배경을 적는다.</li>
+    </ul>
+    <div class="example"><span class="tag">example</span>
+<pre>1. 회사는 [생산지원팀, 양조1팀, 양조2팀, 품질보증팀, 설비기술팀] 으로 구성됨
+2. 일반회원, 관리자로 구성됨</pre>
+    </div>
+  </section>
+
+  <!-- 5. 행위자 1 -->
+  <section>
+    <div class="sec-head"><span class="no">D-1</span><h2>행위자 1 · 일반회원</h2></div>
+    <p class="hint">행위자 1 입장의 사용 절차를 동작 순서대로, 필요한 기능과 함께 기술한다.</p>
+    <div class="actor">
+      <ol class="rules">
+        <li>장비 목록 중에서 <b>{품목이름, 카테고리1, 카테고리2}</b>로 리스트를 필터링해서 품목을 고른다.</li>
+        <li>품목을 고르고 원하는 대여기간을 캘린더에서 선택한다.</li>
+        <li>캘린더에는 해당 품목을 대여 못하는 기간이 표시되어 있다.</li>
+        <li>신청 버튼을 누르면 완료.</li>
+        <li>나의 신청현황과 상태를 확인할 수 있다.</li>
+        <li>신청이 관리자에 의해 허가되면 앱을 통해 알람을 받는다.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 6. 행위자 2 -->
+  <section>
+    <div class="sec-head"><span class="no">D-2</span><h2>행위자 2 · 관리자</h2></div>
+    <p class="hint">행위자 2 입장의 사용 절차를 동작 순서대로, 필요한 기능과 함께 기술한다.</p>
+    <div class="actor a2">
+      <ol class="rules">
+        <li>회원들의 가입 여부를 승인할 수 있다.</li>
+        <li>회원들의 가입정보를 관리할 수 있다.</li>
+        <li>장비 목록 데이터를 입력(수동, 엑셀 업로드)할 수 있다.</li>
+        <li>전체 목록을 관리한다.</li>
+        <li>회원들의 대여 신청을 승인·대기·취소·변경할 수 있다.</li>
+        <li>각 부서별 대여 현황을 통계로 파악할 수 있다.</li>
+        <li>반납기간이 지난 사람에게 “쪽지”를 보내 반납을 독촉할 수 있다.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 7. 추가참고 정보 -->
+  <section>
+    <div class="sec-head"><span class="no">E</span><h2>입력 · 추가 참고 정보</h2></div>
+    <ul class="dash">
+      <li>추가로 제공할 데이터 정보, 예시 문서, 기존 사용 문서 구조 등을 전달한다.</li>
+      <li>각 문서와 데이터의 목적과 구조를 명확히 한다.</li>
+    </ul>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>고유번호</th><th>장비명</th><th>대분류</th><th>중분류</th><th>소분류</th><th>장소</th><th>상태</th><th>최대대여일</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>노트북-01</td><td>맥북 프로 14</td><td>IT기기</td><td>노트북</td><td>맥북</td><td>3층 창고</td><td class="state-ok">가능</td><td class="num">4</td></tr>
+          <tr><td>노트북-02</td><td>LG 그램 16</td><td>IT기기</td><td>노트북</td><td>윈도우 노트북</td><td>3층 창고</td><td class="state-out">대여중</td><td class="num">3</td></tr>
+          <tr><td>데스크탑-01</td><td>HP 프로데스크 미니</td><td>IT기기</td><td>데스크탑</td><td>미니PC</td><td>4층 IT실</td><td class="state-ok">가능</td><td class="num">4</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>END OF SHEET</span>
+    <span>PRD → FS · MARKDOWN OUTPUT</span>
+  </footer>
+</div>
+</body>
+</html>

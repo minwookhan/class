@@ -54,6 +54,13 @@ toc: false
         <small>하드웨어 제어, 펌웨어, 장비 연동 노트</small>
       </span>
     </a>
+    <a class="site-home-card" href="/docs/week-3/firebase/">
+      <span class="site-home-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14"/><path d="M5 20h14"/><path d="M7 4v16"/><path d="M17 4v16"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h3"/></svg></span>
+      <span>
+        <strong>3주차 Firebase</strong>
+        <small>프로젝트 생성, 앱 등록, 인증과 Firestore 설정</small>
+      </span>
+    </a>
     <a class="site-home-card" href="/docs/">
       <span class="site-home-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v14H4z"/><path d="M8 22h8"/><path d="M10 18v4"/><path d="M14 18v4"/><path d="M8 9h3"/><path d="M13 9h3"/><path d="M8 13h8"/></svg></span>
       <span>

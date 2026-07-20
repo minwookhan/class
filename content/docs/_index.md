@@ -1,5 +1,7 @@
 ---
-title: "업무용웹앱"
+title: "과목"
+linkTitle: "과목"
+weight: 1
 cascade:
   type: docs
 ---
