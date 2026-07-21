@@ -106,7 +106,22 @@ toc: true
 ![20260719_135015_screenshot.png](/org-assets/6c6e1456-20260719_135015_screenshot.png)
 
 
-### 요청 결과
+## 대화내역
+
+-   대화내용 요약.
+
+<iframe class="embedded-html-frame"
+        src="/apps/week-3/my-page/prc_conv.html"
+        title="PRD 대화"></iframe>
+
+
+## 요청 결과
+
+-   PRD, FS 문서
+
+<iframe class="embedded-html-frame"
+        src="/apps/week-3/my-page/국순당_소모품관리앱_PRD-FS.html"
+        title="PRD 대화"></iframe>
 
 <img src="/org-assets/8f6fbf7d-20260719_140703_screenshot.png" alt="20260719_140703_screenshot.png" width="800">
 
@@ -507,15 +522,6 @@ toc: true
     - 품목별 개별 승인
     - 신청 첨부파일/링크
 ~~~
-
-
-## 대화내역
-
--   대화내용 요약.
-
-<iframe class="embedded-html-frame"
-        src="/apps/week-3/my-page/prc_conv.html"
-        title="PRD 대화"></iframe>
 
 
 # System prompt 입력

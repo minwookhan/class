@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>국순당 소모품 구매신청 및 재고관리 앱 · PRD / FS</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fff; --ink:#101317; --ink-2:#4a5158; --ink-3:#8b929a;
+  --rule:#e6e8ec; --rule-soft:#f1f3f6; --wash:#fafbfc;
+  --accent:#2545f5; --accent-soft:#eef1ff;
+  --ok:#0a7d46; --ok-soft:#e8f6ef;
+  --warn:#a8620a; --warn-soft:#fdf3e5;
+  --off:#c2c7cf;
+  --sans:"Pretendard Variable",Pretendard,-apple-system,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:120px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.68;letter-spacing:-0.01em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1160px;margin:0 auto;padding:0 30px}
+
+/* masthead */
+header.top{padding:60px 0 30px;border-bottom:1px solid var(--ink)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 14px}
+header.top h1{margin:0;font-size:clamp(28px,4.4vw,44px);font-weight:800;letter-spacing:-0.042em;line-height:1.1}
+header.top h1 em{display:block;font-style:normal;font-family:var(--mono);font-weight:400;
+  font-size:clamp(13px,1.5vw,16px);color:var(--ink-3);margin-top:11px;letter-spacing:-0.01em}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.pill{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-2);
+  border:1px solid var(--rule);border-radius:999px;padding:5px 12px;background:var(--wash)}
+
+/* tabs */
+.tabbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);
+  backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--rule)}
+.tabbar .wrap{display:flex;gap:4px;padding-top:0;padding-bottom:0}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;
+  font-family:inherit;font-size:15px;font-weight:700;letter-spacing:-0.02em;color:var(--ink-3);
+  padding:16px 4px;margin-right:24px;cursor:pointer;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tab small{display:block;font-family:var(--mono);font-size:10px;font-weight:400;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+
+/* section nav */
+.subnav{position:sticky;top:57px;z-index:29;background:rgba(255,255,255,.92);
+  backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--rule)}
+.subnav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:9px;padding-bottom:9px;scrollbar-width:none}
+.subnav .wrap::-webkit-scrollbar{display:none}
+.subnav a{flex:0 0 auto;text-decoration:none;font-size:12.5px;font-weight:500;color:var(--ink-2);
+  padding:5px 11px;border-radius:999px;white-space:nowrap;transition:background .15s,color .15s}
+.subnav a:hover{background:var(--rule-soft);color:var(--ink)}
+.subnav a.on{background:var(--ink);color:#fff}
+.subnav a b{font-family:var(--mono);font-weight:500;opacity:.5;margin-right:6px}
+
+/* panels */
+.panel{display:none}
+.panel.show{display:block;animation:in .28s cubic-bezier(.4,0,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* section */
+.sect{padding:56px 0 0;scroll-margin-top:120px}
+.sect-head{display:grid;grid-template-columns:58px 1fr;gap:0 18px;
+  padding-bottom:20px;margin-bottom:28px;border-bottom:1px solid var(--rule)}
+.sect-no{font-family:var(--mono);font-size:28px;color:var(--rule);line-height:1;padding-top:5px;letter-spacing:-0.04em}
+.sect-head h2{margin:0;font-size:23px;font-weight:750;letter-spacing:-0.035em}
+.sect-head h2 span{display:block;font-family:var(--mono);font-size:11.5px;font-weight:400;
+  color:var(--ink-3);letter-spacing:0;margin-top:5px}
+.sect-head p{grid-column:2;margin:11px 0 0;color:var(--ink-2);font-size:14px}
+
+/* grid */
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 28px;align-items:start}
+.span2{grid-column:1 / -1}
+
+/* card */
+.card{border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:#fff;
+  transition:border-color .18s,box-shadow .18s}
+.card:hover{border-color:#d5d9e0;box-shadow:0 1px 2px rgba(16,19,23,.04),0 12px 28px -18px rgba(16,19,23,.26)}
+.card > header{padding:18px 20px 14px;border-bottom:1px solid var(--rule-soft)}
+.card h3{margin:0;font-size:15.5px;font-weight:700;letter-spacing:-0.025em;display:flex;align-items:center;gap:9px}
+.card h3 .no{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--accent);
+  background:var(--accent-soft);padding:2px 7px;border-radius:5px;letter-spacing:0}
+.card h3 .en{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--ink-3);letter-spacing:0}
+.card .body{padding:16px 20px 18px}
+.card .body > :first-child{margin-top:0}
+.card .body > :last-child{margin-bottom:0}
+
+/* lists */
+ul.dash{list-style:none;margin:0;padding:0;font-size:14px;color:var(--ink-2)}
+ul.dash li{position:relative;padding-left:16px;margin-bottom:7px}
+ul.dash li::before{content:"";position:absolute;left:0;top:11px;width:7px;height:1px;background:var(--off)}
+ul.dash li:last-child{margin-bottom:0}
+ul.dash strong{color:var(--ink);font-weight:600}
+ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;font-size:14px;color:var(--ink-2)}
+ol.steps li{counter-increment:s;position:relative;padding-left:28px;margin-bottom:9px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:1px;
+  width:19px;height:19px;border-radius:6px;background:var(--rule-soft);color:var(--ink-3);
+  font-family:var(--mono);font-size:10.5px;display:grid;place-items:center}
+ol.steps li:last-child{margin-bottom:0}
+ol.steps ul{list-style:none;margin:6px 0 0;padding:0}
+ol.steps ul li{counter-increment:none;padding-left:14px;margin-bottom:4px;font-size:13.5px}
+ol.steps ul li::before{content:"";width:5px;height:5px;border-radius:50%;
+  background:var(--off);top:9px;left:2px}
+ol.steps strong{color:var(--ink);font-weight:600}
+
+/* glossary */
+dl.gloss{margin:0;font-size:14px}
+dl.gloss dt{font-weight:700;color:var(--ink);margin-top:12px}
+dl.gloss dt:first-child{margin-top:0}
+dl.gloss dd{margin:1px 0 0;color:var(--ink-2)}
+
+/* table */
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:12px}
+.card .tbl{border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);padding:12px 16px;border-bottom:1px solid var(--rule);
+  background:var(--wash);white-space:nowrap}
+td{padding:10px 16px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--wash)}
+td.k{font-weight:600;white-space:nowrap;width:1%}
+td.f{font-family:var(--mono);font-size:12.5px;color:var(--accent);white-space:nowrap}
+td.t{font-family:var(--mono);font-size:12px;color:var(--ink-3);white-space:nowrap}
+th.c,td.c{text-align:center;width:1%}
+.o{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;
+  background:var(--ok-soft);color:var(--ok);font-family:var(--mono);font-size:11px;font-weight:600}
+.x{color:var(--off);font-family:var(--mono);font-size:13px}
+
+/* code / flow */
+.flow{border:1px solid var(--rule);border-radius:14px;padding:24px;background:var(--wash);
+  font-size:14px}
+.flow .node{display:inline-flex;align-items:center;gap:8px;border-radius:9px;padding:7px 13px;
+  font-weight:600;font-size:13.5px;border:1px solid var(--rule);background:#fff}
+.flow .node code{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--ink-3)}
+.flow .node.start{background:var(--ink);border-color:var(--ink);color:#fff}
+.flow .node.start code{color:rgba(255,255,255,.55)}
+.flow .node.go{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.flow .node.go code{color:var(--ok);opacity:.6}
+.flow .node.stop{color:var(--ink-3)}
+.flow .branches{margin-top:18px;border-left:1px solid var(--rule);padding-left:0}
+.flow .br{position:relative;padding:0 0 16px 26px}
+.flow .br:last-child{padding-bottom:0}
+.flow .br::before{content:"";position:absolute;left:0;top:16px;width:18px;height:1px;background:var(--rule)}
+.flow .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);display:block;margin-bottom:7px}
+.flow .then{margin-left:22px;margin-top:9px;padding-left:16px;border-left:1px dashed var(--rule)}
+.flow .memo{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+
+/* callouts */
+.note{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13px;
+  background:var(--accent-soft);color:var(--ink-2);border-left:2px solid var(--accent)}
+.note strong{color:var(--ink)}
+.card .note{margin:14px -20px -18px;border-radius:0;border-left:0;border-top:1px solid var(--rule-soft);
+  background:var(--wash);padding:12px 20px}
+.warnbox{border:1px dashed #e3d4b8;background:var(--warn-soft);border-radius:14px;padding:20px 22px}
+.warnbox h3{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--warn);
+  font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.warnbox ul.dash li::before{background:#d9b57f}
+.warnbox ul.dash{color:#7a4c10}
+code.inl{font-family:var(--mono);font-size:12.5px;background:var(--rule-soft);padding:1px 5px;
+  border-radius:4px;color:var(--ink)}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chips span{font-size:13px;font-weight:600;padding:6px 13px;border-radius:8px;
+  background:var(--accent-soft);color:var(--accent)}
+
+footer{border-top:1px solid var(--ink);margin-top:80px;padding:24px 0 60px}
+footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.05em}
+
+@media (max-width:860px){
+  .wrap{padding:0 18px}
+  .cols{grid-template-columns:1fr;gap:18px}
+  .sect{padding:42px 0 0}
+  .sect-head{grid-template-columns:40px 1fr;gap:0 13px}
+  .sect-no{font-size:22px}
+  .subnav{top:54px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+@media print{.tabbar,.subnav{display:none}.panel{display:block!important}.card{break-inside:avoid;box-shadow:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Product Requirements &amp; Functional Spec</p>
+    <h1>국순당 소모품 구매신청 및 재고관리 앱<em>부서별 구매신청 프로세스 전산화 · 재고 실시간 관리</em></h1>
+    <div class="meta">
+      <span class="pill">Google AI Studio</span>
+      <span class="pill">Firebase Auth + Firestore</span>
+      <span class="pill">반응형 웹 (모바일 · PC)</span>
+      <span class="pill">한국어</span>
+    </div>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-panel="prd">제품요구사항<small>PRD</small></button>
+    <button class="tab" role="tab" aria-selected="false" data-panel="fs">기능명세서<small>FS</small></button>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="wrap" id="navPrd">
+    <a href="#p1"><b>01</b>개요</a>
+    <a href="#p2"><b>02</b>대상 사용자</a>
+    <a href="#p3"><b>03</b>사용자 시나리오</a>
+    <a href="#p4"><b>04</b>핵심 기능</a>
+    <a href="#p5"><b>05</b>비기능 요구사항</a>
+    <a href="#p6"><b>06</b>범위 제외</a>
+    <a href="#p7"><b>07</b>참고 자료</a>
+  </div>
+  <div class="wrap" id="navFs" hidden>
+    <a href="#f1"><b>01</b>시스템 구성</a>
+    <a href="#f2"><b>02</b>권한 매트릭스</a>
+    <a href="#f3"><b>03</b>데이터 모델</a>
+    <a href="#f4"><b>04</b>화면 목록</a>
+    <a href="#f5"><b>05</b>상태 흐름</a>
+    <a href="#f6"><b>06</b>주요 로직</a>
+    <a href="#f7"><b>07</b>리포트 출력</a>
+    <a href="#f8"><b>08</b>예외 처리</a>
+    <a href="#f9"><b>09</b>향후 검토</a>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ============ PRD ============ -->
+<div class="panel show" id="prd">
+
+<section class="sect" id="p1">
+  <div class="sect-head"><div class="sect-no">01</div>
+    <h2>개요<span>Overview</span></h2>
+    <p>종이·엑셀 대장 수기작성 방식을 대체합니다.</p>
+  </div>
+  <div class="cols">
+    <div class="card span2"><div class="body" style="padding:0">
+      <div class="tbl" style="border:0">
+        <table>
+          <tbody>
+            <tr><td class="k">프로젝트명</td><td>국순당 소모품 구매신청 / 재고관리 앱</td></tr>
+            <tr><td class="k">목적</td><td>부서별 소모품 구매신청 프로세스 전산화 + 재고 실시간 관리</td></tr>
+            <tr><td class="k">개발환경</td><td>Google AI Studio</td></tr>
+            <tr><td class="k">인증 / DB</td><td>Firebase (Authentication, Firestore)</td></tr>
+            <tr><td class="k">플랫폼</td><td>반응형 웹앱 (모바일 + PC)</td></tr>
+            <tr><td class="k">기존 방식 문제</td><td>종이·엑셀 대장 수기작성 → 이력 누락, 재고파악 지연, 취합 리포트 작업 과다</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+
+    <div class="card span2">
+      <header><h3><span class="no">용어</span>문서에서 쓰는 말</h3></header>
+      <div class="body">
+        <dl class="gloss">
+          <dt>PRD</dt><dd>제품요구사항문서. 앱이 해야 할 일을 정의한 문서.</dd>
+          <dt>FS</dt><dd>기능명세서. PRD를 실제 개발 단위 기능으로 구체화한 문서.</dd>
+          <dt>고정품목</dt><dd>관리자가 미리 등록·관리하는 표준 소모품 목록.</dd>
+          <dt>추가품목</dt><dd>신청자가 신청 시점에 직접 새로 등록하는 품목. 해당 신청 건에만 한정됩니다.</dd>
+          <dt>탕비위생품목</dt><dd>관리자가 관리하는 탕비실·위생용품 전용 목록.</dd>
+          <dt>장바구니 신청</dt><dd>여러 품목을 한 번에 담아 하나의 신청 건으로 제출하는 방식.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="p2">
+  <div class="sect-head"><div class="sect-no">02</div>
+    <h2>대상 사용자<span>Users &amp; Roles</span></h2>
+    <p>5개 부서, 2단계 권한 구조.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <header><h3>조직 구조<span class="en">Departments</span></h3></header>
+      <div class="body">
+        <div class="chips">
+          <span>생산지원팀</span><span>양조1팀</span><span>양조2팀</span><span>품질보증팀</span><span>설비기술팀</span>
+        </div>
+        <div class="note">부서는 가입 시 본인이 선택하며, 신청·예산·통계의 기준 단위가 됩니다.</div>
+      </div>
+    </div>
+    <div class="card">
+      <header><h3>역할<span class="en">Role</span></h3></header>
+      <div class="body" style="padding:0">
+        <div class="tbl" style="border:0;border-radius:0">
+          <table>
+            <thead><tr><th>역할</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td class="k">일반회원</td><td>소모품 신청, 본인 신청현황 조회</td></tr>
+              <tr><td class="k">관리자</td><td>회원승인, 신청처리(승인·거절·취소·구매완료), 재고관리, 예산관리, 리포트</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note" style="margin:0;border-top:1px solid var(--rule-soft)">
+          관리자는 전체 부서 통합 권한을 가집니다. 최초 관리자 1명은 수동 생성하고, 이후에는 관리자가 다른 회원을 승격합니다.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="p3">
+  <div class="sect-head"><div class="sect-no">03</div>
+    <h2>사용자 시나리오<span>User Scenarios</span></h2>
+    <p>가입부터 리포트 출력까지의 동작 순서.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <header><h3><span class="no">3-1</span>회원가입 및 로그인</h3></header>
+      <div class="body"><ol class="steps">
+        <li>이메일로 회원가입(Firebase 이메일 인증), 도메인 제한 없음</li>
+        <li>가입 시 소속 부서 본인 선택</li>
+        <li>관리자 승인 전까지 앱 이용 불가(대기 상태)</li>
+        <li>승인 완료 시 알림 뱃지 수신, 로그인 가능</li>
+      </ol></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">3-2</span>소모품 신청 · 일반회원</h3></header>
+      <div class="body"><ol class="steps">
+        <li>품목 종류 선택 — 고정품목 / 추가품목 / 탕비위생품목</li>
+        <li>고정·탕비위생품목: 품목이름 또는 상품코드로 검색 후 선택</li>
+        <li>추가품목: 신규 품목정보 직접 입력, 고유번호 자동 생성(중복 방지)</li>
+        <li>품목·수량을 장바구니에 담아 한 번에 신청</li>
+        <li>단가 기준으로 신청금액 자동 계산</li>
+        <li>신청 완료 후 <strong>대기</strong> 상태로 등록</li>
+        <li>마이페이지에서 본인 신청현황·상태 확인</li>
+        <li>대기 상태 건은 본인이 직접 취소 가능</li>
+        <li>관리자 승인 시 알림 뱃지 수신</li>
+      </ol></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">3-3</span>신청 처리 · 관리자</h3></header>
+      <div class="body"><ol class="steps">
+        <li>부서별 통합 신청 현황 조회</li>
+        <li>신청 건(장바구니 단위) 처리
+          <ul>
+            <li><strong>승인</strong> — 구매예정 내역서 대상으로 이동</li>
+            <li><strong>취소</strong> — 반려 통보, 신청자가 수정 후 재제출 가능</li>
+            <li><strong>거절</strong> — 신청 삭제</li>
+          </ul>
+        </li>
+        <li>부서별 월 예산 한도 설정, 초과 시 경고 표시</li>
+        <li>구매 완료 처리
+          <ul>
+            <li>입고수량 입력</li>
+            <li>재고수량 자동 차감(수동 수정·엑셀 일괄 입력 지원)</li>
+            <li>전체불출내역 데이터로 반영</li>
+          </ul>
+        </li>
+      </ol></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">3-4</span>리포트 · 통계</h3></header>
+      <div class="body"><ol class="steps">
+        <li>부서별·품목별·기간별(주 / 월 / 분기 / 연) 통계를 표와 그래프로 확인</li>
+        <li><strong>통합신청내역</strong> 부서별 엑셀 리포트 출력(월 지정 가능)</li>
+        <li><strong>전체불출내역</strong> PDF 리포트를 기간 선택 후 수동 생성·출력</li>
+      </ol></div>
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="p4">
+  <div class="sect-head"><div class="sect-no">04</div>
+    <h2>핵심 기능 요구사항<span>Core Requirements</span></h2>
+    <p>9개 기능 영역.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <header><h3><span class="no">4-1</span>인증 · 회원관리</h3></header>
+      <div class="body"><ul class="dash">
+        <li>Firebase 이메일 회원가입 / 로그인</li>
+        <li>가입 시 부서 선택 필수</li>
+        <li>관리자 승인 전 서비스 이용 제한</li>
+        <li>관리자 승격 기능(관리자가 관리자 지정)</li>
+        <li>퇴사자 계정 비활성화 — 신청이력은 보존, 삭제하지 않음</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-2</span>품목 관리</h3></header>
+      <div class="body"><ul class="dash">
+        <li><strong>고정 · 탕비위생품목</strong> — 관리자 CRUD, 품목이름·상품코드·단위·단가 관리</li>
+        <li><strong>추가품목</strong> — 신청 시 생성, 고유번호 자동생성 로직 필요, 해당 신청 건에만 종속(공용목록 미등록)</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-3</span>신청 기능</h3></header>
+      <div class="body"><ul class="dash">
+        <li>장바구니형 신청 — 여러 품목 동시 담기</li>
+        <li>금액 자동계산 — 단가 × 수량</li>
+        <li>상태 흐름 — 대기 → 승인 / 거절 / 취소</li>
+        <li>본인 취소는 대기 상태에서만 가능</li>
+        <li>신청현황 리스트 · 상세 조회</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-4</span>승인 · 구매 프로세스</h3></header>
+      <div class="body"><ul class="dash">
+        <li>신청 건 단위 일괄 승인·거절·취소 (품목별 개별승인 없음)</li>
+        <li>승인 시 구매예정 내역서 자동 추가</li>
+        <li>구매완료 처리 시 입고수량 입력 → 전체불출내역 반영</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-5</span>재고 관리</h3></header>
+      <div class="body"><ul class="dash">
+        <li>품목별 재고수량 관리 — 입고 · 사용 · 재고 자동계산</li>
+        <li>승인·구매완료 처리 시 재고 자동 차감</li>
+        <li>관리자 수동 수정 가능</li>
+        <li>엑셀 일괄 업로드로 재고 일괄 반영</li>
+        <li>최소재고 알림은 미적용(범위 제외)</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-6</span>예산 관리</h3></header>
+      <div class="body"><ul class="dash">
+        <li>부서별 월 예산 한도 설정</li>
+        <li>초과 시 관리자 화면에 경고 표시</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-7</span>알림</h3></header>
+      <div class="body"><ul class="dash">
+        <li>인앱 알림 뱃지 방식 (웹푸시 아님)</li>
+        <li>일반회원 — 승인 · 반려 · 거절 통보</li>
+        <li>관리자 — 신규 신청 발생 통보</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">4-8</span>리포트 · 출력</h3></header>
+      <div class="body"><ul class="dash">
+        <li>통계 리포트 — 부서별 / 품목별 / 기간별 표 + 그래프</li>
+        <li>통합신청내역 엑셀 출력 (월 지정, 부서별)</li>
+        <li>전체불출내역 PDF 출력 (기간 선택, 수동 생성)</li>
+      </ul></div>
+    </div>
+
+    <div class="card span2">
+      <header><h3><span class="no">4-9</span>데이터 정책</h3></header>
+      <div class="body"><ul class="dash">
+        <li>연도가 바뀌면 새 연도 문서로 초기화 — 과거 데이터는 조회만 가능하며 삭제하지 않습니다.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="p5">
+  <div class="sect-head"><div class="sect-no">05</div>
+    <h2>비기능 요구사항<span>Non-functional</span></h2>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>구분</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td class="k">플랫폼</td><td>반응형 웹 (모바일 · PC 모두 지원)</td></tr>
+        <tr><td class="k">인증</td><td>Firebase Authentication</td></tr>
+        <tr><td class="k">데이터저장</td><td>Firebase Firestore</td></tr>
+        <tr><td class="k">보안</td><td>이메일 인증 + 관리자 승인 2중 게이트 (도메인 제한 없음)</td></tr>
+        <tr><td class="k">파일출력</td><td>엑셀(xlsx), PDF</td></tr>
+        <tr><td class="k">언어</td><td>한국어</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sect" id="p6">
+  <div class="sect-head"><div class="sect-no">06</div>
+    <h2>범위 제외<span>Out of Scope</span></h2>
+    <p>이번 개발 범위에 포함하지 않습니다.</p>
+  </div>
+  <div class="warnbox">
+    <h3>Not included</h3>
+    <ul class="dash">
+      <li>최소재고 미달 알림 기능</li>
+      <li>웹푸시 · 카카오톡 · 이메일 알림 (인앱 뱃지만 지원)</li>
+      <li>품목별 개별 승인 / 거절 (신청 건 단위만 지원)</li>
+      <li>신청 시 첨부파일 · 참고링크 첨부</li>
+      <li>추가품목의 공용목록 등록 (신청 건 한정 사용)</li>
+      <li>앱 내 실제 결제 · 구매 처리 (오프라인 구매 후 상태만 기록)</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sect" id="p7">
+  <div class="sect-head"><div class="sect-no">07</div>
+    <h2>참고 자료<span>References</span></h2>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <header><h3><span class="en">PDF</span>1_전체불출내역</h3></header>
+      <div class="body">부서별 소모품 불출대장 양식. 전체불출내역 리포트의 참고 양식입니다.</div>
+    </div>
+    <div class="card">
+      <header><h3><span class="en">XLSX</span>2_통합신청내역</h3></header>
+      <div class="body">연간 품목별·월별 구입량 및 금액 집계 양식. 통합신청내역 리포트의 참고 양식입니다.</div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ============ FS ============ -->
+<div class="panel" id="fs">
+
+<section class="sect" id="f1">
+  <div class="sect-head"><div class="sect-no">01</div>
+    <h2>시스템 구성<span>Stack</span></h2>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>영역</th><th>사용 기술</th></tr></thead>
+      <tbody>
+        <tr><td class="k">프론트엔드</td><td>Google AI Studio 생성 웹앱 (반응형)</td></tr>
+        <tr><td class="k">인증</td><td>Firebase Authentication — 이메일 / 비밀번호</td></tr>
+        <tr><td class="k">데이터베이스</td><td>Firebase Firestore</td></tr>
+        <tr><td class="k">파일 저장</td><td>Firebase Storage (엑셀 업로드 등)</td></tr>
+        <tr><td class="k">엑셀 출력</td><td>SheetJS (xlsx)</td></tr>
+        <tr><td class="k">PDF 출력</td><td>jsPDF 또는 html2pdf</td></tr>
+        <tr><td class="k">알림</td><td>Firestore 기반 인앱 알림 컬렉션 (웹푸시 미사용)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sect" id="f2">
+  <div class="sect-head"><div class="sect-no">02</div>
+    <h2>권한 매트릭스<span>Permissions</span></h2>
+    <p>O = 가능 · — = 불가</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>기능</th><th class="c">일반회원</th><th class="c">관리자</th></tr></thead>
+      <tbody>
+        <tr><td>회원가입 / 로그인</td><td class="c"><span class="o">O</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>회원 승인</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>회원 권한 승격</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>품목 신청 (고정 · 추가 · 탕비)</td><td class="c"><span class="o">O</span></td><td class="c"><span class="x">—</span></td></tr>
+        <tr><td>본인 신청현황 조회</td><td class="c"><span class="o">O</span></td><td class="c"><span class="o">O</span> <small style="color:var(--ink-3)">전체</small></td></tr>
+        <tr><td>신청 취소 (대기 상태)</td><td class="c"><span class="o">O</span> <small style="color:var(--ink-3)">본인</small></td><td class="c"><span class="o">O</span> <small style="color:var(--ink-3)">전체</small></td></tr>
+        <tr><td>신청 승인 / 거절 / 취소 처리</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>구매완료 처리</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>고정 · 탕비 품목 관리 (CRUD)</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>재고 수동 수정 / 엑셀 업로드</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>부서 예산 설정</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>통계 리포트 조회</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>통합신청내역 엑셀 출력</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+        <tr><td>전체불출내역 PDF 출력</td><td class="c"><span class="x">—</span></td><td class="c"><span class="o">O</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sect" id="f3">
+  <div class="sect-head"><div class="sect-no">03</div>
+    <h2>데이터 모델<span>Firestore Collections</span></h2>
+    <p>7개 컬렉션.</p>
+  </div>
+  <div class="cols">
+
+    <div class="card">
+      <header><h3>users<span class="en">회원</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">uid</td><td class="t">string</td><td>Firebase Auth UID</td></tr>
+        <tr><td class="f">email</td><td class="t">string</td><td>이메일</td></tr>
+        <tr><td class="f">name</td><td class="t">string</td><td>이름</td></tr>
+        <tr><td class="f">department</td><td class="t">string</td><td>소속부서 (5개 팀 중 1)</td></tr>
+        <tr><td class="f">role</td><td class="t">string</td><td>general | admin</td></tr>
+        <tr><td class="f">status</td><td class="t">string</td><td>pending | approved | disabled</td></tr>
+        <tr><td class="f">createdAt</td><td class="t">timestamp</td><td>가입일</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+    <div class="card">
+      <header><h3>items<span class="en">고정 · 탕비위생품목</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">itemId</td><td class="t">string</td><td>상품코드 (고유값)</td></tr>
+        <tr><td class="f">name</td><td class="t">string</td><td>품목명</td></tr>
+        <tr><td class="f">unit</td><td class="t">string</td><td>단위 (EA, 켤레, box 등)</td></tr>
+        <tr><td class="f">price</td><td class="t">number</td><td>단가</td></tr>
+        <tr><td class="f">type</td><td class="t">string</td><td>fixed | pantry</td></tr>
+        <tr><td class="f">stockQty</td><td class="t">number</td><td>현재 재고수량</td></tr>
+        <tr><td class="f">minStockAlertYn</td><td class="t">boolean</td><td>false 고정 (기능 미사용)</td></tr>
+        <tr><td class="f">createdAt</td><td class="t">timestamp</td><td>등록일</td></tr>
+        <tr><td class="f">updatedAt</td><td class="t">timestamp</td><td>최종수정일</td></tr>
+      </tbody></table></div></div>
+      <div class="note">한 컬렉션에 담고 <code class="inl">type</code>으로 고정 / 탕비를 구분합니다.</div>
+    </div>
+
+    <div class="card">
+      <header><h3>extraItems<span class="en">추가품목</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">extraItemId</td><td class="t">string</td><td>자동 생성 고유번호 (중복검사 포함)</td></tr>
+        <tr><td class="f">requestId</td><td class="t">string</td><td>소속 신청 건 ID</td></tr>
+        <tr><td class="f">name</td><td class="t">string</td><td>품목명</td></tr>
+        <tr><td class="f">unit</td><td class="t">string</td><td>단위</td></tr>
+        <tr><td class="f">price</td><td class="t">number</td><td>단가 (신청자 입력)</td></tr>
+      </tbody></table></div></div>
+      <div class="note">신청 건에 종속됩니다. 공용목록에는 등록되지 않습니다.</div>
+    </div>
+
+    <div class="card">
+      <header><h3>requests<span class="en">신청 건 = 장바구니</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">requestId</td><td class="t">string</td><td>신청 건 ID</td></tr>
+        <tr><td class="f">userId</td><td class="t">string</td><td>신청자 UID</td></tr>
+        <tr><td class="f">department</td><td class="t">string</td><td>신청자 부서</td></tr>
+        <tr><td class="f">status</td><td class="t">string</td><td>pending | approved | rejected | canceled | purchased</td></tr>
+        <tr><td class="f">totalAmount</td><td class="t">number</td><td>신청금액 합계 (자동계산)</td></tr>
+        <tr><td class="f">createdAt</td><td class="t">timestamp</td><td>신청일</td></tr>
+        <tr><td class="f">processedAt</td><td class="t">timestamp</td><td>관리자 처리일</td></tr>
+        <tr><td class="f">processedBy</td><td class="t">string</td><td>처리 관리자 UID</td></tr>
+        <tr><td class="f">canceledReason</td><td class="t">string</td><td>취소(반려) 사유</td></tr>
+        <tr><td class="f">year</td><td class="t">number</td><td>귀속 연도 (연도 초기화 기준)</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+    <div class="card">
+      <header><h3>requestItems<span class="en">신청 품목 라인</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">requestId</td><td class="t">string</td><td>상위 신청 건 ID</td></tr>
+        <tr><td class="f">itemType</td><td class="t">string</td><td>fixed | pantry | extra</td></tr>
+        <tr><td class="f">itemId</td><td class="t">string</td><td>items 또는 extraItems 참조</td></tr>
+        <tr><td class="f">itemName</td><td class="t">string</td><td>품목명 (스냅샷)</td></tr>
+        <tr><td class="f">unitPrice</td><td class="t">number</td><td>단가 (스냅샷)</td></tr>
+        <tr><td class="f">qty</td><td class="t">number</td><td>신청수량</td></tr>
+        <tr><td class="f">lineAmount</td><td class="t">number</td><td>단가 × 수량</td></tr>
+        <tr><td class="f">receivedQty</td><td class="t">number</td><td>구매완료 시 입고수량</td></tr>
+      </tbody></table></div></div>
+      <div class="note">단가·품목명은 <strong>스냅샷</strong>으로 저장해, 나중에 원본 품목이 바뀌어도 과거 신청 금액이 변하지 않습니다.</div>
+    </div>
+
+    <div class="card">
+      <header><h3>budgets<span class="en">부서별 월 예산</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">department</td><td class="t">string</td><td>부서명</td></tr>
+        <tr><td class="f">yearMonth</td><td class="t">string</td><td>YYYY-MM</td></tr>
+        <tr><td class="f">limitAmount</td><td class="t">number</td><td>예산 한도</td></tr>
+        <tr><td class="f">usedAmount</td><td class="t">number</td><td>사용(승인) 누적금액</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+    <div class="card span2">
+      <header><h3>notifications<span class="en">인앱 알림</span></h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody>
+        <tr><td class="f">userId</td><td class="t">string</td><td>수신자 UID</td></tr>
+        <tr><td class="f">type</td><td class="t">string</td><td>approved | rejected | canceled | newRequest</td></tr>
+        <tr><td class="f">requestId</td><td class="t">string</td><td>관련 신청 건</td></tr>
+        <tr><td class="f">isRead</td><td class="t">boolean</td><td>읽음 여부</td></tr>
+        <tr><td class="f">createdAt</td><td class="t">timestamp</td><td>생성일</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="sect" id="f4">
+  <div class="sect-head"><div class="sect-no">04</div>
+    <h2>화면 목록<span>Screens</span></h2>
+    <p>일반회원 9개 · 관리자 13개.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <header><h3><span class="no">9</span>일반회원</h3></header>
+      <div class="body"><ol class="steps">
+        <li>로그인 / 회원가입 (부서 선택 포함)</li>
+        <li>승인대기 안내 화면</li>
+        <li>홈 — 신청하기 진입</li>
+        <li>품목 검색·선택 (고정 / 탕비위생 — 이름·상품코드 검색)</li>
+        <li>추가품목 등록 (품목명 · 단위 · 단가 · 수량)</li>
+        <li>장바구니 (담은 품목, 수량 수정, 합계금액)</li>
+        <li>신청 완료 화면</li>
+        <li>내 신청현황 리스트·상세 (상태 필터, 대기 건 취소)</li>
+        <li>알림함 (뱃지)</li>
+      </ol></div>
+    </div>
+    <div class="card">
+      <header><h3><span class="no">13</span>관리자</h3></header>
+      <div class="body"><ol class="steps">
+        <li>회원 승인 관리 (가입대기 승인·거절)</li>
+        <li>회원 관리 (부서·권한 수정, 비활성화)</li>
+        <li>부서별 통합 신청 현황 대시보드</li>
+        <li>신청 상세·처리 (승인·거절·취소, 취소사유 입력)</li>
+        <li>구매예정 내역서 (승인된 건 목록)</li>
+        <li>구매완료 처리 (입고수량 입력 → 재고 자동반영)</li>
+        <li>품목 관리 (고정 · 탕비위생 CRUD)</li>
+        <li>재고 관리 (현재고 조회, 수동수정, 엑셀 업로드)</li>
+        <li>부서별 예산 설정</li>
+        <li>통계 리포트 (표 + 그래프, 기간 필터)</li>
+        <li>통합신청내역 엑셀 출력 (월 선택)</li>
+        <li>전체불출내역 PDF 출력 (기간 선택)</li>
+        <li>알림함 (뱃지)</li>
+      </ol></div>
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="f5">
+  <div class="sect-head"><div class="sect-no">05</div>
+    <h2>상태 흐름<span>Request Status Flow</span></h2>
+    <p>신청 건 status의 전이 경로.</p>
+  </div>
+  <div class="flow">
+    <div class="node start">대기 <code>pending</code></div>
+    <div class="branches">
+
+      <div class="br">
+        <span class="lbl">본인 취소</span>
+        <div class="node stop">취소됨 <code>canceled-by-user</code></div>
+        <div class="memo">완전 종료</div>
+      </div>
+
+      <div class="br">
+        <span class="lbl">관리자 거절</span>
+        <div class="node stop">거절 <code>rejected</code></div>
+        <div class="memo">완전 종료 · 신청 삭제 처리</div>
+      </div>
+
+      <div class="br">
+        <span class="lbl">관리자 취소 = 반려</span>
+        <div class="node">반려 <code>canceled</code></div>
+        <div class="then">
+          <div class="memo" style="margin-top:0">신청자 수정 후 재제출</div>
+          <div class="node start" style="margin-top:8px">대기 <code>pending</code> 복귀</div>
+        </div>
+      </div>
+
+      <div class="br">
+        <span class="lbl">관리자 승인</span>
+        <div class="node go">승인 <code>approved</code></div>
+        <div class="then">
+          <div class="memo" style="margin-top:0">구매예정 내역서 등재 → 구매완료 처리 시 입고수량 입력</div>
+          <div class="node go" style="margin-top:8px">구매완료 <code>purchased</code></div>
+          <div class="memo">재고 자동 차감 + 전체불출내역 데이터 반영</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="sect" id="f6">
+  <div class="sect-head"><div class="sect-no">06</div>
+    <h2>주요 로직 명세<span>Core Logic</span></h2>
+  </div>
+  <div class="cols">
+
+    <div class="card">
+      <header><h3><span class="no">6-1</span>추가품목 고유번호 생성</h3></header>
+      <div class="body"><ul class="dash">
+        <li>규칙 — <code class="inl">EXT-{연도}-{일련번호 6자리}</code> 형태 등 기존 <code class="inl">items.itemId</code>와 겹치지 않는 채번</li>
+        <li>신청 저장 시 extraItems 컬렉션에서 최대 일련번호 조회 후 +1, 트랜잭션으로 중복 방지</li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">6-2</span>신청금액 자동계산</h3></header>
+      <div class="body"><ul class="dash">
+        <li><code class="inl">lineAmount = unitPrice × qty</code></li>
+        <li><code class="inl">requests.totalAmount = Σ requestItems.lineAmount</code></li>
+      </ul></div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">6-3</span>예산 초과 체크</h3></header>
+      <div class="body"><ul class="dash">
+        <li>승인 시점에 <code class="inl">budgets.usedAmount += totalAmount</code></li>
+        <li><code class="inl">usedAmount &gt; limitAmount</code>이면 관리자 화면에 경고 배지 표시</li>
+      </ul>
+      <div class="note">승인 자체를 막지는 않습니다 — <strong>경고만</strong> 노출합니다.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">6-4</span>재고 자동 차감</h3></header>
+      <div class="body"><ul class="dash">
+        <li>구매완료 시 <code class="inl">stockQty = stockQty + receivedQty − approvedQty</code></li>
+        <li>관리자가 화면에서 수동 수정 가능 (변경이력 로그 권장)</li>
+        <li>엑셀 일괄 업로드 시 상품코드 기준 매칭 후 일괄 갱신</li>
+      </ul></div>
+    </div>
+
+    <div class="card span2">
+      <header><h3><span class="no">6-5</span>알림 트리거</h3></header>
+      <div class="body" style="padding:0"><div class="tbl" style="border:0;border-radius:0"><table>
+        <thead><tr><th>이벤트</th><th>수신자</th><th>알림 타입</th></tr></thead><tbody>
+        <tr><td>회원가입 발생</td><td class="k">관리자</td><td class="f">newMember</td></tr>
+        <tr><td>회원가입 승인</td><td class="k">해당 회원</td><td class="f">memberApproved</td></tr>
+        <tr><td>신규 신청 제출</td><td class="k">관리자</td><td class="f">newRequest</td></tr>
+        <tr><td>신청 승인</td><td class="k">신청자</td><td class="f">approved</td></tr>
+        <tr><td>신청 거절</td><td class="k">신청자</td><td class="f">rejected</td></tr>
+        <tr><td>신청 취소 (반려)</td><td class="k">신청자</td><td class="f">canceled</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+    <div class="card span2">
+      <header><h3><span class="no">6-6</span>연도 초기화</h3></header>
+      <div class="body"><ul class="dash">
+        <li>매년 1월 1일 기준 신규 <code class="inl">year</code> 값으로 신청·통계 데이터 구분</li>
+        <li>리포트·대시보드 기본 조회 범위는 당해 연도. 과거 연도는 별도 선택해 조회만 가능(수정 불가)</li>
+      </ul></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="sect" id="f7">
+  <div class="sect-head"><div class="sect-no">07</div>
+    <h2>리포트 출력 명세<span>Reports</span></h2>
+  </div>
+  <div class="cols">
+
+    <div class="card">
+      <header><h3><span class="no">7-1</span>통합신청내역<span class="en">XLSX</span></h3></header>
+      <div class="body"><ul class="dash">
+        <li>시트 구성 — 고정품목 / 탕비실·위생용품 / 추가발주용품 섹션</li>
+        <li>컬럼 — NO, 품명, 상품코드, 단위, 단가, 1~12월 구입량·구입금액, 누계</li>
+        <li>출력 시 연도 및 월 범위 선택</li>
+        <li>부서 필터 선택 가능 (부서별 출력 지원)</li>
+      </ul>
+      <div class="note"><code class="inl">2_통합신청내역.xlsx</code> 양식 기준</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <header><h3><span class="no">7-2</span>전체불출내역<span class="en">PDF</span></h3></header>
+      <div class="body"><ul class="dash">
+        <li>부서별로 페이지 구성 (부서명 헤더 표시)</li>
+        <li>컬럼 — No, 날짜, 품목, 입고수량, 사용수량, 재고수량, 사용처, 비고</li>
+        <li>구매완료 처리된 신청 건 데이터를 기간 선택 후 수동 생성</li>
+      </ul>
+      <div class="note"><code class="inl">1_전체불출내역.pdf</code> 양식 기준</div>
+      </div>
+    </div>
+
+    <div class="card span2">
+      <header><h3><span class="no">7-3</span>통계 리포트<span class="en">화면 + 엑셀</span></h3></header>
+      <div class="body"><ul class="dash">
+        <li>필터 — 부서, 품목, 기간 (주 / 월 / 분기 / 연)</li>
+        <li>표 — 선택 조건별 신청수량·금액 집계</li>
+        <li>그래프 — 기간별 추이(라인·바), 부서별 비중(파이·바)</li>
+        <li>엑셀 다운로드 지원</li>
+      </ul></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="sect" id="f8">
+  <div class="sect-head"><div class="sect-no">08</div>
+    <h2>예외 · 에러 처리<span>Edge Cases</span></h2>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>상황</th><th>처리</th></tr></thead>
+      <tbody>
+        <tr><td class="k">재고보다 많은 수량 신청</td><td>신청 허용 (재고는 발주로 채워지는 구조). 단, 관리자 화면에 재고부족 표시</td></tr>
+        <tr><td class="k">추가품목 중복 채번</td><td>트랜잭션 처리로 방지</td></tr>
+        <tr><td class="k">승인 처리 중 예산초과</td><td>승인 가능, 경고만 노출 (강제 차단 아님)</td></tr>
+        <tr><td class="k">미승인 회원 로그인</td><td>승인대기 안내화면으로 리다이렉트</td></tr>
+        <tr><td class="k">비활성화 계정 로그인</td><td>로그인 차단 안내</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sect" id="f9">
+  <div class="sect-head"><div class="sect-no">09</div>
+    <h2>향후 검토<span>Backlog</span></h2>
+    <p>이번 범위 제외 · 후속 검토 대상.</p>
+  </div>
+  <div class="warnbox">
+    <h3>Deferred</h3>
+    <ul class="dash">
+      <li>최소재고 미달 알림</li>
+      <li>웹푸시 · 이메일 알림 연동</li>
+      <li>품목별 개별 승인</li>
+      <li>신청 첨부파일 · 링크</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>국순당 소모품 구매신청 및 재고관리 앱</span>
+    <span>PRD 7 sections · FS 9 sections</span>
+  </div>
+</footer>
+
+<script>
+const tabs = [...document.querySelectorAll('.tab')];
+const panels = { prd: document.getElementById('prd'), fs: document.getElementById('fs') };
+const navs   = { prd: document.getElementById('navPrd'), fs: document.getElementById('navFs') };
+
+function openTab(key){
+  tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.panel === key)));
+  Object.entries(panels).forEach(([k, el]) => el.classList.toggle('show', k === key));
+  Object.entries(navs).forEach(([k, el]) => el.hidden = (k !== key));
+  history.replaceState(null, '', '#' + key);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+tabs.forEach(t => t.addEventListener('click', () => openTab(t.dataset.panel)));
+
+// 딥링크: #fs 또는 #f3 형태 지원
+const h = location.hash.slice(1);
+if (h === 'fs' || h.startsWith('f')) openTab('fs');
+
+// 현재 섹션 표시
+const links = [...document.querySelectorAll('.subnav a')];
+const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const io = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (e.isIntersecting) {
+      const nav = map.get(e.target.id).parentElement;
+      [...nav.children].forEach(a => a.classList.remove('on'));
+      map.get(e.target.id).classList.add('on');
+    }
+  });
+}, { rootMargin: '-120px 0px -72% 0px' });
+document.querySelectorAll('.sect').forEach(s => io.observe(s));
+</script>
+</body>
+</html>

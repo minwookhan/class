@@ -769,11 +769,8 @@ toc: true
 -   다른 사람의 링크는 코드와 Database 모두 복사 됩니다
 -   내가 나만의 데이터로 사용하시려면 Database는 내 것으로 교체해야 합니다
 -   "Remix" 하면 코드는 그대로, Database 만 내것으로 사용 합니다.
-    
-    [https://ai.studio/apps/cc9d19b4-c4ae-44e0-ae35-70defb3cf43e](https://ai.studio/apps/cc9d19b4-c4ae-44e0-ae35-70defb3cf43e)
-
--   Remix
-    remix 해야 Database 설정이 링크를 연 사람의 계정으로 다시 세팅됩니다
+-   "Remix" 후  Database 설정이 링크를 연 사람의 계정으로 다시 세팅됩니다
+    [https://ai.studio/apps/6cc5c51d-325c-4cc1-8002-3bda8dc98748](https://ai.studio/apps/6cc5c51d-325c-4cc1-8002-3bda8dc98748)
 
 ![20260718_171700_screenshot.png](/org-assets/629e73e6-20260718_171700_screenshot.png)
 
@@ -990,5 +987,12 @@ AdminEquipment.tsx:80 Ignored call to 'confirm()'. The document is sandboxed, an
 
 ## 최종완성
 
-[https://ai.studio/apps/cc9d19b4-c4ae-44e0-ae35-70defb3cf43e](https://ai.studio/apps/cc9d19b4-c4ae-44e0-ae35-70defb3cf43e)
+[https://ai.studio/apps/f01d82a1-9d0c-48ca-aea9-2a9edc362ca6](https://ai.studio/apps/f01d82a1-9d0c-48ca-aea9-2a9edc362ca6)
+
+
+# 배포 결과
+
+[https://ksd-officehub.vercel.app](https://ksd-officehub.vercel.app)
+
+![20260721_102323_screenshot.png](/org-assets/9728e1d0-20260721_102323_screenshot.png)
 
