@@ -620,10 +620,9 @@ toc: true
 -   다른 사람의 링크는 코드와 Database 모두 복사 됩니다
 -   내가 나만의 데이터로 사용하시려면 Database는 내 것으로 교체해야 합니다
 -   "Remix" 하면 코드는 그대로, Database 만 내것으로 사용 합니다.  &ndash;> Remix 하면 초반에러 발생 할 수 있습니다
-     &ndash;> "Fix" 버튼 클릭!
-    [[<https://ai.studio/apps/0f743e6a-b2b2-4e4b-8e7d-1625a0b10054>
+    &ndash;> "Fix" 버튼 클릭!
 
-][<https://ai.studio/apps/0f743e6a-b2b2-4e4b-8e7d-1625a0b10054>]]
+<https://ai.studio/apps/0f743e6a-b2b2-4e4b-8e7d-1625a0b10054>
 
 ![20260718_171700_screenshot.png](/org-assets/629e73e6-20260718_171700_screenshot.png)
 
