@@ -619,9 +619,11 @@ toc: true
 -   체크 포인트를 클릭하고 다시 화면상단의 "Remix"를 실행해야 합니다.
 -   다른 사람의 링크는 코드와 Database 모두 복사 됩니다
 -   내가 나만의 데이터로 사용하시려면 Database는 내 것으로 교체해야 합니다
--   "Remix" 하면 코드는 그대로, Database 만 내것으로 사용 합니다.
-    
-    [https://ai.studio/apps/1c7a791e-bdbb-41ea-92cd-2b07bd9f990e](https://ai.studio/apps/1c7a791e-bdbb-41ea-92cd-2b07bd9f990e)
+-   "Remix" 하면 코드는 그대로, Database 만 내것으로 사용 합니다.  &ndash;> Remix 하면 초반에러 발생 할 수 있습니다
+     &ndash;> "Fix" 버튼 클릭!
+    [[<https://ai.studio/apps/0f743e6a-b2b2-4e4b-8e7d-1625a0b10054>
+
+][<https://ai.studio/apps/0f743e6a-b2b2-4e4b-8e7d-1625a0b10054>]]
 
 ![20260718_171700_screenshot.png](/org-assets/629e73e6-20260718_171700_screenshot.png)
 
@@ -879,7 +881,7 @@ AdminEquipment.tsx:80 Ignored call to 'confirm()'. The document is sandboxed, an
 
 ## 체크포인트 LINK
 
-[https://ai.studio/apps/1c7a791e-bdbb-41ea-92cd-2b07bd9f990e](https://ai.studio/apps/1c7a791e-bdbb-41ea-92cd-2b07bd9f990e)
+[https://ai.studio/apps/8af29592-dcf9-4a8b-bc94-b238f85bb63d](https://ai.studio/apps/8af29592-dcf9-4a8b-bc94-b238f85bb63d)
 
 
 # 배포
@@ -919,4 +921,12 @@ AdminEquipment.tsx:80 Ignored call to 'confirm()'. The document is sandboxed, an
 <img src="/org-assets/7cdae898-20260719_174433_screenshot.png" alt="20260719_174433_screenshot.png" width="400">
 
 <img src="/org-assets/a7dab0ef-20260719_174603_screenshot.png" alt="20260719_174603_screenshot.png" width="800">
+
+
+## 결과예제
+
+1.  신청관리 1
+    [https://inventory-ruby-omega.vercel.app/](https://inventory-ruby-omega.vercel.app/)
+2.  신청관리 2
+    [https://ksd-officehub.vercel.app/](https://ksd-officehub.vercel.app/)
 
